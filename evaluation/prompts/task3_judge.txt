@@ -1,0 +1,219 @@
+You are one judge in a cross-model evaluation panel for SarcBench Task 3:
+controlled sarcasm generation.
+
+You will evaluate a candidate sarcastic comment written for a conversation
+context, intended meaning, target, and preferred mechanisms. Judge only the
+candidate's quality for this sample. Do not infer or reward the identity of the
+candidate model. Apply the same rubric to every candidate, regardless of writing
+style, language, or length.
+
+----------------------------------------
+Bias Control Rules
+----------------------------------------
+
+- Do not give a higher score merely because the candidate is longer, more
+  elaborate, more emotional, or uses more rhetorical devices.
+- A short sarcastic comment can be excellent if it preserves meaning, fits the
+  thread, and realizes the requested mechanisms.
+- A fluent or funny comment should fail if it changes the intended meaning,
+  mocks the wrong target, ignores the context, or is not actually sarcastic.
+- The reference comment is a quality anchor, not a required wording. Accept
+  different wording when it preserves the same meaning and pragmatic function.
+- Do not reward candidates that explicitly explain the intended meaning instead
+  of expressing it through sarcasm.
+- Do not require all preferred mechanisms if combining them would be unnatural;
+  judge whether the candidate reasonably attempts the requested mechanisms while
+  remaining plausible.
+
+----------------------------------------
+Criteria
+----------------------------------------
+
+Evaluate each criterion independently:
+
+1. meaning_preserved
+   True if the candidate conveys the given intended meaning. False if it changes
+   the stance, weakens the criticism into something unrelated, or states a
+   contradictory implication.
+
+2. sarcastic_tone
+   True if the candidate actually reads as sarcasm in context. False if it is
+   purely literal, purely explanatory, or only a neutral paraphrase.
+
+3. context_fit
+   True if the comment could naturally appear after the given thread. False if
+   it ignores the thread, introduces unsupported facts, or sounds detached from
+   the conversation.
+
+4. target_consistency
+   True if the comment mocks or criticizes the intended target or a directly
+   compatible target from the context. False if it attacks the wrong person,
+   object, platform feature, or claim.
+
+5. mechanism_alignment
+   True if the candidate reasonably realizes the preferred mechanisms:
+   - polarity_reversal: surface praise/approval implies criticism;
+   - exaggeration: deliberate overstatement signals ridicule or criticism;
+   - understatement: deliberate downplaying carries the stronger implied stance;
+   - rhetorical_question: a non-genuine question implies the judgment;
+   - contrast_with_context: sarcasm depends on mismatch with context;
+   - sarcasm_marker: emoji, punctuation, particles, or platform cues help mark
+     the nonliteral stance;
+   - other: a plausible sarcastic realization not covered above.
+   False if the candidate ignores the requested mechanism set when it could have
+   used it naturally.
+
+6. natural_style
+   True if the wording sounds like a plausible human online comment in the
+   thread's language and register. False if it sounds like an instruction,
+   explanation, translation artifact, or generic template.
+
+7. overall_pass
+   True only if the candidate is broadly usable as a benchmark-quality sarcastic
+   comment for this sample. Usually this requires meaning preservation,
+   sarcastic tone, context fit, target consistency, and natural style. Minor
+   mechanism imperfections may still pass if the comment works well overall.
+
+----------------------------------------
+Few-shot Calibration
+----------------------------------------
+
+Example 1:
+Context: Parent: "The bus was delayed for an hour again."
+Intended meaning: The speaker criticizes the transit service for being
+unreliable while pretending to praise it.
+Target: the transit service
+Preferred mechanisms: ["polarity_reversal", "exaggeration"]
+Reference sarcastic comment: "Fantastic, nothing says world-class transit like
+turning every commute into a surprise endurance event."
+Candidate sarcastic comment: "Brilliant service, really setting the gold
+standard for making a ten-minute trip feel legendary."
+Expected JSON:
+{
+  "meaning_preserved": true,
+  "sarcastic_tone": true,
+  "context_fit": true,
+  "target_consistency": true,
+  "mechanism_alignment": true,
+  "natural_style": true,
+  "overall_pass": true,
+  "explanation": {
+    "meaning_preserved": "The candidate criticizes the transit service as unreliable.",
+    "sarcastic_tone": "Surface praise such as brilliant service creates clear sarcasm.",
+    "context_fit": "It naturally follows the bus-delay context.",
+    "target_consistency": "The target remains the transit service.",
+    "mechanism_alignment": "It uses polarity reversal and exaggerated praise.",
+    "natural_style": "The wording is fluent as an online complaint.",
+    "overall": "The candidate preserves the intended meaning and realizes the requested sarcastic mechanisms well."
+  }
+}
+
+Example 2:
+Context: Parent: "The creator apologized for a typo in the caption."
+Intended meaning: The speaker thinks the criticism of the typo is excessive.
+Target: people overreacting to the typo
+Preferred mechanisms: ["understatement", "contrast_with_context"]
+Reference sarcastic comment: "Yeah, a typo in a caption, truly civilization's
+final warning sign."
+Candidate sarcastic comment: "The caption has a typo."
+Expected JSON:
+{
+  "meaning_preserved": false,
+  "sarcastic_tone": false,
+  "context_fit": true,
+  "target_consistency": false,
+  "mechanism_alignment": false,
+  "natural_style": true,
+  "overall_pass": false,
+  "explanation": {
+    "meaning_preserved": "The candidate states the typo fact but not the criticism of overreaction.",
+    "sarcastic_tone": "The sentence is literal rather than sarcastic.",
+    "context_fit": "It is about the caption typo, so it fits the topic.",
+    "target_consistency": "It does not mock people overreacting to the typo.",
+    "mechanism_alignment": "It does not use understatement or contextual contrast.",
+    "natural_style": "The sentence is natural but too literal.",
+    "overall": "The candidate fails because it is a literal statement and misses the intended sarcastic meaning."
+  }
+}
+
+Example 3:
+Context: Parent: "He spent the whole video saying the product was too expensive."
+Intended meaning: The speaker mocks the reviewer for still buying the product
+after complaining about the price.
+Target: the reviewer
+Preferred mechanisms: ["rhetorical_question", "contrast_with_context"]
+Reference sarcastic comment: "If it was that overpriced, why did the checkout
+button look so tempting?"
+Candidate sarcastic comment: "So expensive that buying it immediately was just
+the financially responsible move, right?"
+Expected JSON:
+{
+  "meaning_preserved": true,
+  "sarcastic_tone": true,
+  "context_fit": true,
+  "target_consistency": true,
+  "mechanism_alignment": true,
+  "natural_style": true,
+  "overall_pass": true,
+  "explanation": {
+    "meaning_preserved": "The candidate mocks the reviewer for buying despite complaining about price.",
+    "sarcastic_tone": "The rhetorical question and ironic phrasing make the sarcasm clear.",
+    "context_fit": "It follows directly from the reviewer's complaint and purchase.",
+    "target_consistency": "The target is the reviewer.",
+    "mechanism_alignment": "It uses a rhetorical question and contrast with the prior behavior.",
+    "natural_style": "The wording sounds like a plausible online reply.",
+    "overall": "The candidate fits the context, preserves the target, and realizes the requested mechanisms."
+  }
+}
+
+----------------------------------------
+Actual Evaluation Item
+----------------------------------------
+
+Context:
+__THREAD_TEXT__
+
+Intended meaning:
+__INTENDED_MEANING__
+
+Target:
+__TARGET__
+
+Preferred mechanisms:
+__MECHANISMS__
+
+Reference sarcastic comment:
+__REFERENCE_COMMENT__
+
+Candidate sarcastic comment:
+__CANDIDATE_COMMENT__
+
+----------------------------------------
+Output Format
+----------------------------------------
+
+Return JSON only with exactly these fields: the boolean criteria and a mandatory
+`explanation` object. Include one explanation sentence for every criterion plus
+the overall decision. Do not write long essays; the explanation should justify
+the boolean decision, not repeat the full thread.
+
+{
+  "meaning_preserved": true,
+  "sarcastic_tone": true,
+  "context_fit": true,
+  "target_consistency": true,
+  "mechanism_alignment": true,
+  "natural_style": true,
+  "overall_pass": true,
+  "explanation": {
+    "meaning_preserved": "One-sentence reason.",
+    "sarcastic_tone": "One-sentence reason.",
+    "context_fit": "One-sentence reason.",
+    "target_consistency": "One-sentence reason.",
+    "mechanism_alignment": "One-sentence reason.",
+    "natural_style": "One-sentence reason.",
+    "overall": "One-sentence summary of why the candidate passes or fails."
+  }
+}
+
+Do not include numeric scores, markdown, or extra fields.

@@ -1,0 +1,171 @@
+{
+  "paths": {
+    "data_dir": "data",
+    "output_dir": "outputs/paper_main",
+    "prompts_dir": "evaluation/prompts"
+  },
+  "protocol": {
+    "candidate_temperature": 0.7,
+    "judge_temperature": 0.0,
+    "judge_repeats": 3,
+    "request_timeout": 120.0,
+    "max_attempts": 1,
+    "max_workers": 8,
+    "judge_workers": 8
+  },
+  "candidate_models": [
+    {
+      "alias": "gpt-5.4",
+      "display_name": "GPT-5.4",
+      "provider": "openai",
+      "deployment": "provider_api",
+      "model": "gpt-5.4",
+      "api_key_env": "OPENAI_API_KEY",
+      "max_tokens": 512
+    },
+    {
+      "alias": "gemini-3.1-pro",
+      "display_name": "Gemini 3.1 Pro",
+      "provider": "gemini",
+      "deployment": "provider_api",
+      "model": "gemini-3.1-pro",
+      "api_key_env": "GEMINI_API_KEY",
+      "max_tokens": 512
+    },
+    {
+      "alias": "claude-opus-4.6",
+      "display_name": "Claude Opus 4.6",
+      "provider": "anthropic",
+      "deployment": "provider_api",
+      "model": "claude-opus-4.6",
+      "api_key_env": "ANTHROPIC_API_KEY",
+      "max_tokens": 512
+    },
+    {
+      "alias": "qwen-3.6-plus",
+      "display_name": "Qwen 3.6 Plus",
+      "provider": "openai_compatible",
+      "deployment": "provider_api",
+      "model": "qwen3.6-plus",
+      "base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+      "base_url_env": "QWEN_BASE_URL",
+      "api_key_env": "QWEN_API_KEY",
+      "max_tokens": 512
+    },
+    {
+      "alias": "deepseek-v3.2",
+      "display_name": "DeepSeek V3.2",
+      "provider": "openai_compatible",
+      "deployment": "provider_api",
+      "model": "deepseek-v3.2",
+      "base_url": "https://api.deepseek.com/v1",
+      "base_url_env": "DEEPSEEK_BASE_URL",
+      "api_key_env": "DEEPSEEK_API_KEY",
+      "max_tokens": 512
+    },
+    {
+      "alias": "minimax-2.7",
+      "display_name": "MiniMax 2.7",
+      "provider": "openai_compatible",
+      "deployment": "provider_api",
+      "model": "minimax-2.7",
+      "base_url_env": "MINIMAX_BASE_URL",
+      "api_key_env": "MINIMAX_API_KEY",
+      "max_tokens": 512
+    },
+    {
+      "alias": "mimo-v2-pro",
+      "display_name": "MiMo V2 Pro",
+      "provider": "openai_compatible",
+      "deployment": "provider_api",
+      "model": "mimo-v2-pro",
+      "base_url_env": "MIMO_BASE_URL",
+      "api_key_env": "MIMO_API_KEY",
+      "max_tokens": 512
+    },
+    {
+      "alias": "qwen-3.6-35b",
+      "display_name": "Qwen 3.6 35B",
+      "provider": "openai_compatible",
+      "deployment": "openai_compatible_endpoint",
+      "model": "Qwen/Qwen3.6-35B",
+      "base_url": "http://127.0.0.1:8010/v1",
+      "base_url_env": "QWEN_35B_BASE_URL",
+      "api_key": "EMPTY",
+      "max_tokens": 512
+    },
+    {
+      "alias": "gemma-4-31b",
+      "display_name": "Gemma 4 31B",
+      "provider": "openai_compatible",
+      "deployment": "openai_compatible_endpoint",
+      "model": "google/gemma-4-31b-it",
+      "base_url": "http://127.0.0.1:8011/v1",
+      "base_url_env": "GEMMA_31B_BASE_URL",
+      "api_key": "EMPTY",
+      "max_tokens": 512
+    },
+    {
+      "alias": "phi-4",
+      "display_name": "Phi-4",
+      "provider": "openai_compatible",
+      "deployment": "openai_compatible_endpoint",
+      "model": "microsoft/phi-4",
+      "base_url": "http://127.0.0.1:8012/v1",
+      "base_url_env": "PHI4_BASE_URL",
+      "api_key": "EMPTY",
+      "max_tokens": 512
+    },
+    {
+      "alias": "llama-4-scout",
+      "display_name": "Llama 4 Scout",
+      "provider": "openai_compatible",
+      "deployment": "openai_compatible_endpoint",
+      "model": "meta-llama/Llama-4-Scout",
+      "base_url": "http://127.0.0.1:8013/v1",
+      "base_url_env": "LLAMA4_SCOUT_BASE_URL",
+      "api_key": "EMPTY",
+      "max_tokens": 512
+    },
+    {
+      "alias": "mistral-7b-instruct-v0.3",
+      "display_name": "Mistral 7B Instruct v0.3",
+      "provider": "openai_compatible",
+      "deployment": "openai_compatible_endpoint",
+      "model": "mistralai/Mistral-7B-Instruct-v0.3",
+      "base_url": "http://127.0.0.1:8014/v1",
+      "base_url_env": "MISTRAL_7B_BASE_URL",
+      "api_key": "EMPTY",
+      "max_tokens": 512
+    }
+  ],
+  "judge_models": [
+    {
+      "alias": "gpt-5.4",
+      "display_name": "GPT-5.4",
+      "provider": "openai",
+      "deployment": "provider_api",
+      "model": "gpt-5.4",
+      "api_key_env": "OPENAI_API_KEY",
+      "max_tokens": 256
+    },
+    {
+      "alias": "gemini-3.1-pro",
+      "display_name": "Gemini 3.1 Pro",
+      "provider": "gemini",
+      "deployment": "provider_api",
+      "model": "gemini-3.1-pro",
+      "api_key_env": "GEMINI_API_KEY",
+      "max_tokens": 256
+    },
+    {
+      "alias": "claude-opus-4.6",
+      "display_name": "Claude Opus 4.6",
+      "provider": "anthropic",
+      "deployment": "provider_api",
+      "model": "claude-opus-4.6",
+      "api_key_env": "ANTHROPIC_API_KEY",
+      "max_tokens": 256
+    }
+  ]
+}

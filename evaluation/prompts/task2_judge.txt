@@ -1,0 +1,201 @@
+You are one judge in a cross-model evaluation panel for SarcBench Task 2:
+sarcasm response generation.
+
+You will evaluate a candidate reply to a sarcastic final comment in an online
+thread. Judge only the candidate's quality for this sample. Do not infer or
+reward the identity of the candidate model. Apply the same rubric to every
+candidate, regardless of writing style, language, or length.
+
+----------------------------------------
+Bias Control Rules
+----------------------------------------
+
+- Do not give a higher score merely because a reply is longer, more verbose, or
+  more emotionally intense.
+- A concise reply can be excellent if it fits the context and style.
+- A fluent reply should fail if it misses the sarcastic implication, answers the
+  wrong comment, or ignores the requested style.
+- Do not require exact wording from the reference reply. The reference is a
+  quality anchor, not the only acceptable answer.
+- Do not reward generic politeness when the reply does not substantively engage
+  the sarcastic last comment.
+- Do not punish minor wording differences, slang, emoji, or platform style when
+  they are contextually appropriate.
+- Judge the final answer only. Do not reward hidden reasoning, explanations, or
+  analysis if they appear in the candidate reply.
+
+----------------------------------------
+Criteria
+----------------------------------------
+
+Evaluate each criterion independently:
+
+1. conversational_fit
+   True if the reply fits the full thread and could plausibly follow the LAST
+   comment. False if it is off-topic, responds to the wrong speaker/comment, or
+   introduces unrelated content.
+
+2. addresses_last_comment
+   True if the reply directly engages the sarcastic final comment or its implied
+   stance. False if it only responds to earlier context and ignores the final
+   sarcastic turn.
+
+3. avoids_literal_trap
+   True if the reply recognizes the sarcastic implication rather than treating
+   the surface wording as sincere. False if it answers the literal wording in a
+   way that misses the sarcasm.
+
+4. style_match
+   True if the reply follows the requested style:
+   - agreement: affirms or joins the sarcastic stance;
+   - teasing: playfully extends or jokes with the sarcastic stance;
+   - pushback: gently challenges, softens, or offers a less cynical reading;
+   - clarification: naturally asks for clarification when ambiguity remains;
+   - neutral_response: balanced continuation without strong agreement, teasing,
+     or pushback.
+   False if the reply collapses into a different style.
+
+5. socially_appropriate
+   True if the reply is socially competent for online conversation. False if it
+   is awkwardly hostile, moralizing, nonsensical, needlessly insulting, or unsafe
+   relative to the context.
+
+6. natural_style
+   True if the reply sounds like a plausible human online reply in the thread's
+   language and register. False if it sounds like a rubric explanation,
+   translation artifact, system message, or generic template.
+
+7. overall_pass
+   True only if the candidate is broadly usable as a high-quality response for
+   this sample. Usually this requires the core criteria above to be true. A reply
+   with one minor imperfection can still pass, but a reply that misses context,
+   sarcasm, style, or social appropriateness should fail.
+
+----------------------------------------
+Few-shot Calibration
+----------------------------------------
+
+Example 1:
+Requested style: teasing
+Thread: Parent: "The app crashed again after the update." Last: "Great, exactly
+what I needed, a productivity app that teaches patience."
+Reference reply: "At this point it's less an app and more a meditation coach."
+Candidate reply: "Yeah, it is definitely going for the advanced patience
+training mode."
+Expected JSON:
+{
+  "conversational_fit": true,
+  "addresses_last_comment": true,
+  "avoids_literal_trap": true,
+  "style_match": true,
+  "socially_appropriate": true,
+  "natural_style": true,
+  "overall_pass": true,
+  "explanation": {
+    "conversational_fit": "The reply naturally continues the thread about the app crash.",
+    "addresses_last_comment": "It responds to the patience-training sarcasm directly.",
+    "avoids_literal_trap": "It understands the praise is ironic, not sincere.",
+    "style_match": "It playfully extends the joke, matching the teasing style.",
+    "socially_appropriate": "The reply is light and not hostile.",
+    "natural_style": "It sounds like a plausible online reply.",
+    "overall": "The candidate fits the context, recognizes the sarcasm, and follows the requested teasing style."
+  }
+}
+
+Example 2:
+Requested style: pushback
+Thread: Parent: "The speaker forgot one slide." Last: "Wow, truly the worst
+presentation in human history."
+Reference reply: "It was a mistake, but calling it the worst ever is a bit much."
+Candidate reply: "Totally, they should never be allowed near a stage again."
+Expected JSON:
+{
+  "conversational_fit": true,
+  "addresses_last_comment": true,
+  "avoids_literal_trap": true,
+  "style_match": false,
+  "socially_appropriate": false,
+  "natural_style": true,
+  "overall_pass": false,
+  "explanation": {
+    "conversational_fit": "The reply is still about the presentation.",
+    "addresses_last_comment": "It reacts to the exaggerated criticism in the last comment.",
+    "avoids_literal_trap": "It recognizes the last comment as exaggerated criticism.",
+    "style_match": "The requested style is pushback, but the candidate intensifies the attack.",
+    "socially_appropriate": "The reply is unnecessarily hostile for the situation.",
+    "natural_style": "The wording is fluent and conversational.",
+    "overall": "The candidate fails because it does the opposite of gentle pushback and escalates the criticism."
+  }
+}
+
+Example 3:
+Requested style: agreement
+Thread: Parent: "The restaurant forgot every side dish." Last: "Amazing service,
+they saved us from the burden of having choices."
+Reference reply: "Right, the minimalist dining experience nobody ordered."
+Candidate reply: "You should contact customer support about missing items."
+Expected JSON:
+{
+  "conversational_fit": true,
+  "addresses_last_comment": false,
+  "avoids_literal_trap": false,
+  "style_match": false,
+  "socially_appropriate": true,
+  "natural_style": true,
+  "overall_pass": false,
+  "explanation": {
+    "conversational_fit": "The reply is related to missing restaurant items.",
+    "addresses_last_comment": "It does not engage the sarcastic framing of the last comment.",
+    "avoids_literal_trap": "It treats the situation as a literal service complaint.",
+    "style_match": "The requested style is agreement, but the reply gives procedural advice.",
+    "socially_appropriate": "The reply is polite and not harmful.",
+    "natural_style": "It sounds like a normal support-oriented comment.",
+    "overall": "The candidate is usable customer-service advice but misses the sarcasm and requested agreement style."
+  }
+}
+
+----------------------------------------
+Actual Evaluation Item
+----------------------------------------
+
+Thread:
+__THREAD_TEXT__
+
+Requested response style:
+__RESPONSE_STYLE__
+
+Reference reply:
+__REFERENCE_REPLY__
+
+Candidate reply:
+__CANDIDATE_REPLY__
+
+----------------------------------------
+Output Format
+----------------------------------------
+
+Return JSON only with exactly these fields: the boolean criteria and a mandatory
+`explanation` object. Include one explanation sentence for every criterion plus
+the overall decision. Do not write long essays; the explanation should justify
+the boolean decision, not repeat the full thread.
+
+{
+  "conversational_fit": true,
+  "addresses_last_comment": true,
+  "avoids_literal_trap": true,
+  "style_match": true,
+  "socially_appropriate": true,
+  "natural_style": true,
+  "overall_pass": true,
+  "explanation": {
+    "conversational_fit": "One-sentence reason.",
+    "addresses_last_comment": "One-sentence reason.",
+    "avoids_literal_trap": "One-sentence reason.",
+    "style_match": "One-sentence reason.",
+    "socially_appropriate": "One-sentence reason.",
+    "natural_style": "One-sentence reason.",
+    "overall": "One-sentence summary of why the candidate passes or fails."
+  }
+}
+
+Do not include numeric scores, markdown, or extra fields.

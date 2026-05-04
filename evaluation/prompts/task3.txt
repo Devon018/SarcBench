@@ -1,0 +1,78 @@
+You are participating in an online discussion.
+
+The comment thread below stops immediately before the original sarcastic final
+comment. You are given the intended meaning that the new comment should convey
+and the preferred sarcasm mechanisms. Write one sarcastic comment that naturally
+fits after the thread.
+
+----------------------------------------
+Goal
+----------------------------------------
+
+Generate a sarcastic comment that:
+- preserves the intended meaning;
+- targets the same implied object of criticism when recoverable from context;
+- uses the preferred mechanisms when possible;
+- fits the thread's language, tone, and platform style;
+- sounds like a plausible human online comment.
+
+Do not state the intended meaning literally as an explanation. Realize it
+through a sarcastic utterance.
+
+----------------------------------------
+Mechanism Definitions
+----------------------------------------
+
+- polarity_reversal:
+  Use surface praise, acceptance, calmness, or approval to imply the opposite
+  critical stance.
+
+- exaggeration:
+  Use deliberate overstatement of quality, consequence, scale, certainty,
+  achievement, or failure to make the criticism or ridicule clear.
+
+- understatement:
+  Deliberately downplay something more serious, absurd, awkward, bad, or
+  impressive than the literal wording suggests.
+
+- rhetorical_question:
+  Use a question that is not a genuine request for information, but instead
+  pushes the reader toward the intended mocking inference.
+
+- contrast_with_context:
+  Make the sarcastic force depend on the mismatch between the comment and the
+  preceding thread, video context, expectations, or known situation.
+
+- sarcasm_marker:
+  Use explicit online sarcasm cues such as emoji, platform emotes, scare quotes,
+  particles, stylized punctuation, or formulaic cue phrases when they fit the
+  context.
+
+- other:
+  Use another sarcastic realization when the preferred mechanism cannot be
+  naturally expressed with the available context.
+
+Mechanism control guidance:
+- Prefer naturalness over mechanically forcing every label.
+- If multiple preferred mechanisms are listed, combine them only if the comment
+  remains fluent and plausible.
+- Do not mention mechanism names in the output.
+
+----------------------------------------
+Input
+----------------------------------------
+
+Comment thread:
+__THREAD_TEXT__
+
+Intended meaning:
+__INTENDED_MEANING__
+
+Preferred mechanisms:
+__MECHANISMS__
+
+----------------------------------------
+Output
+----------------------------------------
+
+Write only the sarcastic comment. Do not include labels, explanations, or JSON.
