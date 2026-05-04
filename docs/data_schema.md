@@ -48,8 +48,21 @@ Task 2 is response generation. Each row contains:
 - `gold.reference_reply`
 - `gold.reply_style_label`
 
-The model writes a natural reply to the sarcastic last comment. The judge sees
-the full thread, response-style label, reference reply, and candidate reply.
+This file stores the base sample and the released reference reply. During the
+paper evaluation, each base row is expanded into three requested styles:
+`teasing`, `pushback`, and `neutral`. Candidate prediction rows therefore
+contain:
+
+- `task_instance_id`
+- `sample_id`
+- `requested_style`
+- `prediction`
+- `gold_reply_style_label`
+
+The judge sees the full thread, requested style, reference reply, reference
+reply source style, and candidate reply. The requested style controls
+style-matching; the reference reply is a content anchor for the same sarcasm
+event.
 
 ## `task3_benchmark.jsonl`
 

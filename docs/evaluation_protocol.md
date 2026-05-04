@@ -39,7 +39,9 @@ macro average of intent exact match, target exact match, and mechanism exact
 match.
 
 Task 2, Sarcasm Response, asks a model to write a next-turn reply to the
-sarcastic last comment while following the released response-style label.
+sarcastic last comment under an explicit requested response style. The paper
+experiment expands every released base sample into three style-conditioned
+instances: `teasing`, `pushback`, and `neutral`.
 
 Task 3, Sarcasm Generation, asks a model to write a sarcastic comment conditioned
 on the preceding thread, intended meaning, and preferred mechanism labels.
@@ -67,7 +69,10 @@ single vague preference question. It instructs each judge to:
 
 Task 2 criteria are conversational fit, addressing the sarcastic last comment,
 avoiding literal-trap errors, requested-style match, social appropriateness,
-natural style, and overall pass.
+natural style, and overall pass. The judge uses the `requested_style` on each
+prediction row as the source of truth for style matching. The released
+`reference_reply` is kept as a content anchor for the same sarcasm event, but it
+does not override the requested style.
 
 Task 3 criteria are meaning preservation, sarcastic tone, context fit, target
 consistency, mechanism alignment, natural style, and overall pass.
@@ -87,7 +92,9 @@ The default config uses:
 
 - candidate temperature: `0.7`
 - judge temperature: `0.0`
-- one model query per candidate sample
+- one model query per Task 1 or Task 3 sample
+- three Task 2 queries per base sample, one each for `teasing`, `pushback`, and
+  `neutral`
 - no chain-of-thought prompting
 - no retrieval augmentation
 - no tools

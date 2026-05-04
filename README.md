@@ -28,9 +28,11 @@ The default config follows the paper protocol:
   DeepSeek V3.2, MiniMax 2.7, MiMo V2 Pro, Qwen 3.6 35B, Gemma 4 31B, Phi-4,
   Llama 4 Scout, and Mistral 7B Instruct v0.3.
 - Task 1 is scored directly against gold intent, target, and mechanism labels.
+- Task 2 expands every base sample into three requested response styles:
+  `teasing`, `pushback`, and `neutral`.
 - Task 2 and Task 3 are scored by GPT-5.4, Gemini 3.1 Pro, and Claude Opus 4.6.
-- Each judge scores each response three times; final open-ended scores are
-  averaged across judge families and repeats.
+- Each judge scores each generated response three times; final open-ended
+  scores are averaged across judge families and repeats.
 - Candidate generation uses temperature `0.7`; judge calls use temperature `0.0`.
 
 ## Run
@@ -58,6 +60,8 @@ Outputs are written under `outputs/paper_main/`:
 
 - `candidates/<model>/task*_predictions.jsonl`
 - `candidates/<model>/task1_metrics.json`
+- `candidates/<model>/task2_predictions.jsonl` with one row per
+  sample/style pair
 - `judgments/<model>/task2_judgments.jsonl`
 - `judgments/<model>/task3_judgments.jsonl`
 - `judgments/<model>/task*_scores_by_sample.jsonl`

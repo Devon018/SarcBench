@@ -12,11 +12,14 @@ Bias Control Rules
 
 - Do not give a higher score merely because a reply is longer, more verbose, or
   more emotionally intense.
-- A concise reply can be excellent if it fits the context and style.
+- A concise reply can be excellent if it fits the context and requested style.
 - A fluent reply should fail if it misses the sarcastic implication, answers the
   wrong comment, or ignores the requested style.
 - Do not require exact wording from the reference reply. The reference is a
   quality anchor, not the only acceptable answer.
+- Use the requested style as the source of truth for style_match. The reference
+  reply may come from the released annotation for the same sample and should not
+  override the requested style.
 - Do not reward generic politeness when the reply does not substantively engage
   the sarcastic last comment.
 - Do not punish minor wording differences, slang, emoji, or platform style when
@@ -47,12 +50,10 @@ Evaluate each criterion independently:
 
 4. style_match
    True if the reply follows the requested style:
-   - agreement: affirms or joins the sarcastic stance;
    - teasing: playfully extends or jokes with the sarcastic stance;
    - pushback: gently challenges, softens, or offers a less cynical reading;
-   - clarification: naturally asks for clarification when ambiguity remains;
-   - neutral_response: balanced continuation without strong agreement, teasing,
-     or pushback.
+   - neutral: balanced continuation without strong agreement, teasing, or
+     pushback.
    False if the reply collapses into a different style.
 
 5. socially_appropriate
@@ -129,7 +130,7 @@ Expected JSON:
 }
 
 Example 3:
-Requested style: agreement
+Requested style: neutral
 Thread: Parent: "The restaurant forgot every side dish." Last: "Amazing service,
 they saved us from the burden of having choices."
 Reference reply: "Right, the minimalist dining experience nobody ordered."
@@ -147,10 +148,10 @@ Expected JSON:
     "conversational_fit": "The reply is related to missing restaurant items.",
     "addresses_last_comment": "It does not engage the sarcastic framing of the last comment.",
     "avoids_literal_trap": "It treats the situation as a literal service complaint.",
-    "style_match": "The requested style is agreement, but the reply gives procedural advice.",
+    "style_match": "The requested style is neutral, but the reply gives procedural advice.",
     "socially_appropriate": "The reply is polite and not harmful.",
     "natural_style": "It sounds like a normal support-oriented comment.",
-    "overall": "The candidate is usable customer-service advice but misses the sarcasm and requested agreement style."
+    "overall": "The candidate is usable customer-service advice but misses the sarcasm and requested neutral style."
   }
 }
 
@@ -163,6 +164,9 @@ __THREAD_TEXT__
 
 Requested response style:
 __RESPONSE_STYLE__
+
+Reference reply source style:
+__REFERENCE_STYLE__
 
 Reference reply:
 __REFERENCE_REPLY__

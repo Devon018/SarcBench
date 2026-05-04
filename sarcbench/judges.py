@@ -14,6 +14,7 @@ from sarcbench.http_client import call_text_model
 from sarcbench.io import append_jsonl, iter_jsonl, load_completed_ids, load_jsonl, task_path, write_json
 from sarcbench.metrics import parse_json_object, summarize_judgment_rows
 from sarcbench.prompts import load_prompt_templates, render_task2_judge_prompt, render_task3_judge_prompt
+from sarcbench.styles import task2_instance_id
 
 
 JUDGE_SCHEMA = {
@@ -161,14 +162,26 @@ def run_judge_task(
     prediction_path = config.output_dir / "candidates" / candidate.alias / f"{task}_predictions.jsonl"
     prediction_rows = load_jsonl(prediction_path, limit=limit)
     benchmark_records = {row["sample_id"]: row for row in iter_jsonl(task_path(config.data_dir, task))}
-    completed = load_completed_ids(judgments_path, key_fields=("sample_id", "judge_model", "judge_repeat"))
-    completed |= load_completed_ids(errors_path, key_fields=("sample_id", "judge_model", "judge_repeat"))
+    if task == "task2":
+        completed = load_completed_ids(
+            judgments_path,
+            key_fields=("sample_id", "requested_style", "judge_model", "judge_repeat"),
+        )
+        completed |= load_completed_ids(
+            errors_path,
+            key_fields=("sample_id", "requested_style", "judge_model", "judge_repeat"),
+        )
+    else:
+        completed = load_completed_ids(judgments_path, key_fields=("sample_id", "judge_model", "judge_repeat"))
+        completed |= load_completed_ids(errors_path, key_fields=("sample_id", "judge_model", "judge_repeat"))
 
     pending = []
     for row in prediction_rows:
         for judge in judges:
             for repeat in range(1, config.protocol.judge_repeats + 1):
                 key = "||".join([row["sample_id"], judge.alias, str(repeat)])
+                if task == "task2":
+                    key = "||".join([row["sample_id"], str(row.get("requested_style", "")), judge.alias, str(repeat)])
                 if key not in completed:
                     pending.append((row, judge, repeat))
 
@@ -199,6 +212,7 @@ def run_judge_task(
                         "candidate_model": candidate.alias,
                         "judge_model": judge.alias,
                         "judge_repeat": repeat,
+                        "requested_style": row.get("requested_style"),
                         "error_type": type(exc).__name__,
                         "error": str(exc),
                         "created_at": now(),
@@ -237,7 +251,17 @@ def call_judge_once(
 ) -> dict[str, Any]:
     candidate_text = prediction_row["prediction"]
     if task == "task2":
-        prompt = render_task2_judge_prompt(prompts["task2_judge"], benchmark_record, candidate_text)
+        requested_style = str(
+            prediction_row.get("requested_style")
+            or prediction_row.get("reply_style_label")
+            or benchmark_record.get("gold", {}).get("reply_style_label", "")
+        )
+        prompt = render_task2_judge_prompt(
+            prompts["task2_judge"],
+            benchmark_record,
+            candidate_text,
+            requested_style=requested_style,
+        )
     elif task == "task3":
         prompt = render_task3_judge_prompt(prompts["task3_judge"], benchmark_record, candidate_text)
     else:
@@ -273,7 +297,10 @@ def call_judge_once(
                 "created_at": now(),
             }
             if task == "task2":
-                result["reply_style_label"] = benchmark_record.get("gold", {}).get("reply_style_label")
+                result["requested_style"] = requested_style
+                result["reply_style_label"] = requested_style
+                result["gold_reply_style_label"] = benchmark_record.get("gold", {}).get("reply_style_label")
+                result["task_instance_id"] = task2_instance_id(benchmark_record["sample_id"], requested_style)
             if retry_errors:
                 result["retry_errors"] = retry_errors
             if raw_response:
@@ -308,11 +335,15 @@ def write_sample_scores(path: Path, judgment_rows: list[dict[str, Any]], task: s
     path.unlink(missing_ok=True)
     by_sample: dict[str, list[dict[str, Any]]] = {}
     for row in judgment_rows:
-        by_sample.setdefault(row["sample_id"], []).append(row)
-    for sample_id, rows in sorted(by_sample.items()):
+        if task == "task2":
+            key = task2_instance_id(row["sample_id"], str(row.get("requested_style") or row.get("reply_style_label") or ""))
+        else:
+            key = row["sample_id"]
+        by_sample.setdefault(key, []).append(row)
+    for _, rows in sorted(by_sample.items()):
         summary = summarize_judgment_rows(rows, task)
         payload = {
-            "sample_id": sample_id,
+            "sample_id": rows[0]["sample_id"],
             "task": task,
             "candidate_model": rows[0]["candidate_model"],
             "num_judgments": summary["num_judgments"],
@@ -329,7 +360,10 @@ def write_sample_scores(path: Path, judgment_rows: list[dict[str, Any]], task: s
             ],
         }
         if task == "task2":
-            payload["reply_style_label"] = rows[0].get("reply_style_label")
+            payload["requested_style"] = rows[0].get("requested_style") or rows[0].get("reply_style_label")
+            payload["reply_style_label"] = payload["requested_style"]
+            payload["gold_reply_style_label"] = rows[0].get("gold_reply_style_label")
+            payload["task_instance_id"] = rows[0].get("task_instance_id")
         append_jsonl(path, payload)
 
 

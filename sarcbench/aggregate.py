@@ -41,6 +41,7 @@ def aggregate_candidate(config: RunConfig, alias: str, display_name: str) -> dic
     task1_overall = task1.get("task1_macro_accuracy_pct", 0.0)
     task2_overall = task2.get("mean_score_pct", 0.0)
     task3_overall = task3.get("mean_score_pct", 0.0)
+    task2_by_style = task2.get("by_style", {})
     return {
         "model_alias": alias,
         "model": display_name,
@@ -48,8 +49,11 @@ def aggregate_candidate(config: RunConfig, alias: str, display_name: str) -> dic
         "task1_target": task1.get("target_exact_pct", 0.0),
         "task1_mechanism": task1.get("mechanism_exact_pct", 0.0),
         "task1_overall": task1_overall,
+        "task2_teasing": style_score(task2_by_style, "teasing"),
+        "task2_pushback": style_score(task2_by_style, "pushback"),
+        "task2_neutral": style_score(task2_by_style, "neutral"),
         "task2_overall": task2_overall,
-        "task2_by_style": task2.get("by_style", {}),
+        "task2_by_style": task2_by_style,
         "task3_overall": task3_overall,
         "overall": (task1_overall + task2_overall + task3_overall) / 3.0,
     }
@@ -61,6 +65,11 @@ def load_json(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def style_score(by_style: dict[str, Any], style: str) -> float:
+    payload = by_style.get(style) or {}
+    return float(payload.get("mean_score_pct", 0.0) or 0.0)
+
+
 def write_csv(path: Path, rows: list[dict[str, Any]]) -> None:
     fields = [
         "model_alias",
@@ -69,6 +78,9 @@ def write_csv(path: Path, rows: list[dict[str, Any]]) -> None:
         "task1_target",
         "task1_mechanism",
         "task1_overall",
+        "task2_teasing",
+        "task2_pushback",
+        "task2_neutral",
         "task2_overall",
         "task3_overall",
         "overall",

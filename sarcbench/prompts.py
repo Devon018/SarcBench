@@ -15,7 +15,13 @@ def load_prompt_templates(prompts_dir: Path) -> dict[str, str]:
     }
 
 
-def render_candidate_prompt(task: str, template: str, record: dict[str, Any]) -> str:
+def render_candidate_prompt(
+    task: str,
+    template: str,
+    record: dict[str, Any],
+    *,
+    requested_style: str | None = None,
+) -> str:
     if task == "task1":
         payload = {
             "comments": record["comments"],
@@ -24,9 +30,10 @@ def render_candidate_prompt(task: str, template: str, record: dict[str, Any]) ->
         }
         return template.replace("__TASK_INPUT_JSON__", json.dumps(payload, ensure_ascii=False, indent=2))
     if task == "task2":
+        style = requested_style or str(record["gold"].get("reply_style_label", ""))
         return (
             template.replace("__THREAD_TEXT__", record["comments"])
-            .replace("__RESPONSE_STYLE__", str(record["gold"].get("reply_style_label", "")))
+            .replace("__RESPONSE_STYLE__", style)
         )
     if task == "task3":
         return (
@@ -37,10 +44,18 @@ def render_candidate_prompt(task: str, template: str, record: dict[str, Any]) ->
     raise ValueError(f"Unknown task: {task}")
 
 
-def render_task2_judge_prompt(template: str, record: dict[str, Any], candidate_reply: str) -> str:
+def render_task2_judge_prompt(
+    template: str,
+    record: dict[str, Any],
+    candidate_reply: str,
+    *,
+    requested_style: str | None = None,
+) -> str:
+    style = requested_style or str(record["gold"].get("reply_style_label", ""))
     return (
         template.replace("__THREAD_TEXT__", record["comments"])
-        .replace("__RESPONSE_STYLE__", str(record["gold"].get("reply_style_label", "")))
+        .replace("__RESPONSE_STYLE__", style)
+        .replace("__REFERENCE_STYLE__", str(record["gold"].get("reply_style_label", "")))
         .replace("__REFERENCE_REPLY__", record["gold"]["reference_reply"])
         .replace("__CANDIDATE_REPLY__", candidate_reply.strip())
     )

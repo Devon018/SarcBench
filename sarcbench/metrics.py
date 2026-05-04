@@ -131,7 +131,12 @@ def bool_judgment_score(judgment: dict[str, Any]) -> dict[str, float]:
 def summarize_judgment_rows(rows: list[dict[str, Any]], task: str) -> dict[str, Any]:
     by_sample: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for row in rows:
-        by_sample[row["sample_id"]].append(row)
+        if task == "task2":
+            requested_style = str(row.get("requested_style") or row.get("reply_style_label") or "unknown")
+            key = f"{row['sample_id']}||{requested_style}"
+        else:
+            key = row["sample_id"]
+        by_sample[key].append(row)
 
     sample_scores = []
     for sample_id, sample_rows in by_sample.items():
@@ -140,13 +145,14 @@ def summarize_judgment_rows(rows: list[dict[str, Any]], task: str) -> dict[str, 
             for key, value in bool_judgment_score(row["judgment"]).items():
                 criterion_totals[key].append(value)
         sample_summary = {
-            "sample_id": sample_id,
+            "sample_id": sample_rows[0]["sample_id"],
             "num_judgments": len(sample_rows),
             "score": mean(criterion_totals.get("overall_pass", [])),
             "criteria": {key: mean(values) for key, values in sorted(criterion_totals.items())},
         }
         if task == "task2":
-            sample_summary["reply_style_label"] = sample_rows[0].get("reply_style_label")
+            sample_summary["requested_style"] = sample_rows[0].get("requested_style") or sample_rows[0].get("reply_style_label")
+            sample_summary["reply_style_label"] = sample_summary["requested_style"]
         sample_scores.append(sample_summary)
 
     payload: dict[str, Any] = {
@@ -173,7 +179,7 @@ def summarize_judgment_rows(rows: list[dict[str, Any]], task: str) -> dict[str, 
     if task == "task2":
         by_style: dict[str, list[float]] = defaultdict(list)
         for sample in sample_scores:
-            by_style[str(sample.get("reply_style_label") or "unknown")].append(sample["score"])
+            by_style[str(sample.get("requested_style") or "unknown")].append(sample["score"])
         payload["by_style"] = {
             style: {"num_samples": len(values), "mean_score": mean(values), "mean_score_pct": 100.0 * mean(values)}
             for style, values in sorted(by_style.items())

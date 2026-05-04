@@ -13,6 +13,7 @@ from sarcbench.http_client import call_text_model
 from sarcbench.io import TASK_FILES, append_jsonl, iter_jsonl, load_completed_ids, task_path, write_json
 from sarcbench.metrics import aggregate_task1, score_task1
 from sarcbench.prompts import load_prompt_templates, render_candidate_prompt
+from sarcbench.styles import TASK2_PAPER_STYLES, parse_task2_styles, task2_instance_id
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -20,6 +21,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--config", default="configs/paper_models.json", help="Path to the paper model roster config.")
     parser.add_argument("--models", default="all", help="Candidate aliases to run, comma-separated, or 'all'.")
     parser.add_argument("--tasks", default="task1,task2,task3", help="Tasks to run, comma-separated.")
+    parser.add_argument(
+        "--task2-styles",
+        default="paper",
+        help="Task 2 styles to run, comma-separated. Defaults to the paper styles: teasing,pushback,neutral.",
+    )
     parser.add_argument("--limit", type=int, default=None, help="Optional prefix limit for controlled partial runs.")
     parser.add_argument("--reset", action="store_true", help="Delete existing candidate outputs for selected tasks.")
     parser.add_argument("--dry-run", action="store_true", help="Validate config and print planned work without API calls.")
@@ -32,14 +38,24 @@ def main(argv: list[str] | None = None) -> int:
     config = RunConfig.load(Path(args.config))
     candidates = config.select_candidates(args.models)
     tasks = parse_tasks(args.tasks)
+    task2_styles = parse_task2_styles(args.task2_styles)
     prompts = load_prompt_templates(config.prompts_dir)
 
     if args.dry_run:
-        print_plan(config, candidates, tasks, args.limit, stage="candidates")
+        print_plan(config, candidates, tasks, args.limit, stage="candidates", task2_styles=task2_styles)
         return 0
 
     for model in candidates:
-        run_candidate_model(config, model, tasks, prompts, limit=args.limit, reset=args.reset, verbose=args.verbose)
+        run_candidate_model(
+            config,
+            model,
+            tasks,
+            prompts,
+            task2_styles=task2_styles,
+            limit=args.limit,
+            reset=args.reset,
+            verbose=args.verbose,
+        )
     return 0
 
 
@@ -57,6 +73,7 @@ def run_candidate_model(
     tasks: list[str],
     prompts: dict[str, str],
     *,
+    task2_styles: list[str],
     limit: int | None,
     reset: bool,
     verbose: bool,
@@ -80,6 +97,7 @@ def run_candidate_model(
             task,
             prompts[task],
             output_dir,
+            task2_styles=task2_styles,
             limit=limit,
             reset=reset,
             verbose=verbose,
@@ -97,6 +115,7 @@ def run_candidate_task(
     prompt_template: str,
     output_dir: Path,
     *,
+    task2_styles: list[str],
     limit: int | None,
     reset: bool,
     verbose: bool,
@@ -108,20 +127,40 @@ def run_candidate_task(
         for path in [predictions_path, errors_path, metrics_path]:
             path.unlink(missing_ok=True)
 
-    completed = load_completed_ids(predictions_path) | load_completed_ids(errors_path)
+    if task == "task2":
+        completed = load_completed_ids(predictions_path, key_fields=("sample_id", "requested_style"))
+        completed |= load_completed_ids(errors_path, key_fields=("sample_id", "requested_style"))
+    else:
+        completed = load_completed_ids(predictions_path) | load_completed_ids(errors_path)
     records = [row for row in iter_jsonl(task_path(config.data_dir, task), limit=limit)]
-    pending = [row for row in records if row["sample_id"] not in completed]
+    if task == "task2":
+        pending = [
+            (row, style)
+            for row in records
+            for style in task2_styles
+            if "||".join([row["sample_id"], style]) not in completed
+        ]
+    else:
+        pending = [(row, None) for row in records if row["sample_id"] not in completed]
     started_at = now()
     usage_totals = {"input_tokens": 0, "output_tokens": 0, "cached_tokens": 0}
     task1_metric_rows: list[dict[str, Any]] = []
 
     with ThreadPoolExecutor(max_workers=max(config.protocol.max_workers, 1)) as executor:
         future_to_record = {
-            executor.submit(call_candidate_once, config, model, task, prompt_template, record): record
-            for record in pending
+            executor.submit(
+                call_candidate_once,
+                config,
+                model,
+                task,
+                prompt_template,
+                record,
+                requested_style=requested_style,
+            ): (record, requested_style)
+            for record, requested_style in pending
         }
         for index, future in enumerate(as_completed(future_to_record), start=1):
-            record = future_to_record[future]
+            record, requested_style = future_to_record[future]
             try:
                 result = future.result()
                 usage = result.get("usage") or {}
@@ -137,6 +176,7 @@ def run_candidate_task(
                         "sample_id": record["sample_id"],
                         "task": task,
                         "candidate_model": model.alias,
+                        "requested_style": requested_style,
                         "error_type": type(exc).__name__,
                         "error": str(exc),
                         "created_at": now(),
@@ -152,6 +192,9 @@ def run_candidate_task(
         metrics = {
             "n": sum(1 for _ in iter_jsonl(predictions_path)),
         }
+        if task == "task2":
+            metrics["num_base_samples"] = len(records)
+            metrics["requested_styles"] = list(task2_styles)
     metrics.update(
         {
             "num_errors": sum(1 for _ in iter_jsonl(errors_path)),
@@ -172,8 +215,10 @@ def call_candidate_once(
     task: str,
     prompt_template: str,
     record: dict[str, Any],
+    *,
+    requested_style: str | None = None,
 ) -> dict[str, Any]:
-    prompt = render_candidate_prompt(task, prompt_template, record)
+    prompt = render_candidate_prompt(task, prompt_template, record, requested_style=requested_style)
     attempts = max(config.protocol.max_attempts, 1)
     retry_errors: list[dict[str, Any]] = []
     usage_total = {"input_tokens": 0, "output_tokens": 0, "cached_tokens": 0}
@@ -203,7 +248,12 @@ def call_candidate_once(
                 "created_at": now(),
             }
             if task == "task2":
-                result["reply_style_label"] = record.get("gold", {}).get("reply_style_label")
+                if requested_style is None:
+                    raise ValueError("Task 2 requires a requested_style")
+                result["task_instance_id"] = task2_instance_id(record["sample_id"], requested_style)
+                result["requested_style"] = requested_style
+                result["reply_style_label"] = requested_style
+                result["gold_reply_style_label"] = record.get("gold", {}).get("reply_style_label")
             if task == "task1":
                 parsed_prediction, metrics = score_task1(record, response_text)
                 result["parsed_prediction"] = parsed_prediction
@@ -225,7 +275,15 @@ def add_usage(total: dict[str, int], usage: dict[str, Any]) -> None:
         total[key] += int(usage.get(key, 0) or 0)
 
 
-def print_plan(config: RunConfig, models: list[ModelSpec], tasks: list[str], limit: int | None, *, stage: str) -> None:
+def print_plan(
+    config: RunConfig,
+    models: list[ModelSpec],
+    tasks: list[str],
+    limit: int | None,
+    *,
+    stage: str,
+    task2_styles: list[str] | None = None,
+) -> None:
     payload = {
         "stage": stage,
         "config": str(config.config_path),
@@ -233,6 +291,7 @@ def print_plan(config: RunConfig, models: list[ModelSpec], tasks: list[str], lim
         "output_dir": str(config.output_dir),
         "prompts_dir": str(config.prompts_dir),
         "tasks": tasks,
+        "task2_styles": task2_styles or list(TASK2_PAPER_STYLES),
         "limit": limit,
         "models": [model.public_dict() for model in models],
         "protocol": config.protocol.__dict__,

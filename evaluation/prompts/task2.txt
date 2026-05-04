@@ -11,11 +11,6 @@ explain the task.
 Response Style Definitions
 ----------------------------------------
 
-- agreement:
-  Join or lightly affirm the sarcastic speaker's stance. The reply should feel
-  like natural agreement with the implied criticism or joke, without merely
-  restating the sarcasm in analytical language.
-
 - teasing:
   Respond playfully. The reply may extend the joke, add a mild ironic flourish,
   or lightly joke with the speaker or target. It should remain friendly and
@@ -26,16 +21,12 @@ Response Style Definitions
   less cynical interpretation, point out that the sarcasm may be too harsh, or
   defend the target mildly while remaining conversational.
 
-- clarification:
-  Ask a natural clarifying question when the intended stance is ambiguous. The
-  reply should invite the speaker to clarify, not interrogate them aggressively.
-
-- neutral_response:
+- neutral:
   Give a balanced, non-confrontational continuation. The reply should acknowledge
   the sarcastic point without strongly agreeing, teasing, or pushing back.
 
-If the requested style is rare or not listed exactly, infer the closest behavior
-from its label and keep the reply natural.
+The paper experiment uses exactly these three requested styles: teasing,
+pushback, and neutral.
 
 ----------------------------------------
 Quality Requirements
