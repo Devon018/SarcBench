@@ -8,18 +8,18 @@ generation.
 
 The default roster in `configs/paper_models.json` contains the 12 paper models:
 
-1. GPT-5.4
+1. GPT-5.5
 2. Gemini 3.1 Pro
-3. Claude Opus 4.6
-4. Qwen 3.6 Plus
-5. DeepSeek V3.2
-6. MiniMax 2.7
+3. Claude Opus 4.8
+4. Qwen 3.7 Plus
+5. DeepSeek V4
+6. MiniMax 3
 7. MiMo V2 Pro
 8. Qwen 3.6 35B
 9. Gemma 4 31B
 10. Phi-4
 11. Llama 4 Scout
-12. Mistral 7B Instruct v0.3
+12. Mistral 7B Instruct
 
 Closed-source models use provider APIs. Open-source models use the
 OpenAI-compatible chat endpoints configured in `configs/paper_models.json`.
@@ -50,7 +50,7 @@ on the preceding thread, intended meaning, and preferred mechanism labels.
 
 Task 2 and Task 3 are open-ended, so they use LLM-as-a-judge:
 
-- judges: GPT-5.4, Gemini 3.1 Pro, Claude Opus 4.6
+- judges: GPT-5.5, Gemini 3.1 Pro, Claude Opus 4.8
 - repeats: 3 independent judge calls per judge family
 - decoding: deterministic judge temperature `0.0`
 - final sample score: mean of `overall_pass` across all judge/repeat judgments

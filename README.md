@@ -24,13 +24,13 @@ scripts/render_leaderboard.py    Ranked-table export entrypoint
 
 The default config follows the paper protocol:
 
-- 12 candidate models: GPT-5.4, Gemini 3.1 Pro, Claude Opus 4.6, Qwen 3.6 Plus,
-  DeepSeek V3.2, MiniMax 2.7, MiMo V2 Pro, Qwen 3.6 35B, Gemma 4 31B, Phi-4,
-  Llama 4 Scout, and Mistral 7B Instruct v0.3.
+- 12 candidate models: GPT-5.5, Gemini 3.1 Pro, Claude Opus 4.8, Qwen 3.7 Plus,
+  DeepSeek V4, MiniMax 3, MiMo V2 Pro, Qwen 3.6 35B, Gemma 4 31B, Phi-4,
+  Llama 4 Scout, and Mistral 7B Instruct.
 - Task 1 is scored directly against gold intent, target, and mechanism labels.
 - Task 2 expands every base sample into three requested response styles:
   `teasing`, `pushback`, and `neutral`.
-- Task 2 and Task 3 are scored by GPT-5.4, Gemini 3.1 Pro, and Claude Opus 4.6.
+- Task 2 and Task 3 are scored by GPT-5.5, Gemini 3.1 Pro, and Claude Opus 4.8.
 - Each judge scores each generated response three times; final open-ended
   scores are averaged across judge families and repeats.
 - Candidate generation uses temperature `0.7`; judge calls use temperature `0.0`.
@@ -50,9 +50,9 @@ python3 scripts/render_leaderboard.py --input outputs/paper_main/results/main_re
 For a single candidate:
 
 ```bash
-python3 scripts/run_candidates.py --models gpt-5.4 --reset
-python3 scripts/run_judges.py --candidates gpt-5.4 --reset
-python3 scripts/aggregate_results.py --models gpt-5.4
+python3 scripts/run_candidates.py --models gpt-5.5 --reset
+python3 scripts/run_judges.py --candidates gpt-5.5 --reset
+python3 scripts/aggregate_results.py --models gpt-5.5
 python3 scripts/render_leaderboard.py --input outputs/paper_main/results/main_results.json
 ```
 

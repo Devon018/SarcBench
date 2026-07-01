@@ -15,11 +15,11 @@
   },
   "candidate_models": [
     {
-      "alias": "gpt-5.4",
-      "display_name": "GPT-5.4",
+      "alias": "gpt-5.5",
+      "display_name": "GPT-5.5",
       "provider": "openai",
       "deployment": "provider_api",
-      "model": "gpt-5.4",
+      "model": "GPT-5.5",
       "api_key_env": "OPENAI_API_KEY",
       "max_tokens": 512
     },
@@ -33,17 +33,17 @@
       "max_tokens": 512
     },
     {
-      "alias": "claude-opus-4.6",
-      "display_name": "Claude Opus 4.6",
+      "alias": "claude-opus-4.8",
+      "display_name": "Claude Opus 4.8",
       "provider": "anthropic",
       "deployment": "provider_api",
-      "model": "claude-opus-4.6",
+      "model": "claude-opus-4.8",
       "api_key_env": "ANTHROPIC_API_KEY",
       "max_tokens": 512
     },
     {
-      "alias": "qwen-3.6-plus",
-      "display_name": "Qwen 3.6 Plus",
+      "alias": "qwen-3.7-plus",
+      "display_name": "Qwen 3.7 Plus",
       "provider": "openai_compatible",
       "deployment": "provider_api",
       "model": "qwen3.6-plus",
@@ -53,19 +53,19 @@
       "max_tokens": 512
     },
     {
-      "alias": "deepseek-v3.2",
-      "display_name": "DeepSeek V3.2",
+      "alias": "deepseek-v4",
+      "display_name": "DeepSeek V4",
       "provider": "openai_compatible",
       "deployment": "provider_api",
-      "model": "deepseek-v3.2",
+      "model": "DeepSeek V4",
       "base_url": "https://api.deepseek.com/v1",
       "base_url_env": "DEEPSEEK_BASE_URL",
       "api_key_env": "DEEPSEEK_API_KEY",
       "max_tokens": 512
     },
     {
-      "alias": "minimax-2.7",
-      "display_name": "MiniMax 2.7",
+      "alias": "minimax-3",
+      "display_name": "MiniMax 3",
       "provider": "openai_compatible",
       "deployment": "provider_api",
       "model": "minimax-2.7",
@@ -88,7 +88,7 @@
       "display_name": "Qwen 3.6 35B",
       "provider": "openai_compatible",
       "deployment": "openai_compatible_endpoint",
-      "model": "Qwen/Qwen3.6-35B",
+      "model": "Qwen/Qwen3.6-35B-A3B",
       "base_url": "http://127.0.0.1:8010/v1",
       "base_url_env": "QWEN_35B_BASE_URL",
       "api_key": "EMPTY",
@@ -121,15 +121,15 @@
       "display_name": "Llama 4 Scout",
       "provider": "openai_compatible",
       "deployment": "openai_compatible_endpoint",
-      "model": "meta-llama/Llama-4-Scout",
+      "model": "meta-llama/Llama-4-Scout-17B-16E-Instruct",
       "base_url": "http://127.0.0.1:8013/v1",
       "base_url_env": "LLAMA4_SCOUT_BASE_URL",
       "api_key": "EMPTY",
       "max_tokens": 512
     },
     {
-      "alias": "mistral-7b-instruct-v0.3",
-      "display_name": "Mistral 7B Instruct v0.3",
+      "alias": "mistral-7b-instruct",
+      "display_name": "Mistral 7B Instruct",
       "provider": "openai_compatible",
       "deployment": "openai_compatible_endpoint",
       "model": "mistralai/Mistral-7B-Instruct-v0.3",
@@ -141,11 +141,11 @@
   ],
   "judge_models": [
     {
-      "alias": "gpt-5.4",
-      "display_name": "GPT-5.4",
+      "alias": "gpt-5.5",
+      "display_name": "GPT-5.5",
       "provider": "openai",
       "deployment": "provider_api",
-      "model": "gpt-5.4",
+      "model": "GPT-5.5",
       "api_key_env": "OPENAI_API_KEY",
       "max_tokens": 256
     },
@@ -159,11 +159,11 @@
       "max_tokens": 256
     },
     {
-      "alias": "claude-opus-4.6",
-      "display_name": "Claude Opus 4.6",
+      "alias": "claude-opus-4.8",
+      "display_name": "Claude Opus 4.8",
       "provider": "anthropic",
       "deployment": "provider_api",
-      "model": "claude-opus-4.6",
+      "model": "claude-opus-4.8",
       "api_key_env": "ANTHROPIC_API_KEY",
       "max_tokens": 256
     }

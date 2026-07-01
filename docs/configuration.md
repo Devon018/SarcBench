@@ -39,7 +39,7 @@ A typical endpoint configuration is:
 {
   "provider": "openai_compatible",
   "deployment": "openai_compatible_endpoint",
-  "model": "Qwen/Qwen3.6-35B",
+  "model": "Qwen/Qwen3.6-35B-A3B",
   "base_url": "http://127.0.0.1:8010/v1",
   "base_url_env": "QWEN_35B_BASE_URL",
   "api_key": "EMPTY"
