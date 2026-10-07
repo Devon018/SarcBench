@@ -1,0 +1,59 @@
+You are participating in an online discussion.
+
+The comment thread below ends with a sarcastic comment. Write one natural
+next-turn reply to that LAST comment.
+
+Your reply should be context-aware, socially plausible, and aligned with the
+requested response style. It should continue the conversation rather than
+explain the task.
+
+----------------------------------------
+Response Style Definitions
+----------------------------------------
+
+- teasing:
+  Respond playfully. The reply may extend the joke, add a mild ironic flourish,
+  or lightly joke with the speaker or target. It should remain friendly and
+  should not become hostile.
+
+- pushback:
+  Gently challenge or soften the sarcastic stance. The reply should offer a
+  less cynical interpretation, point out that the sarcasm may be too harsh, or
+  defend the target mildly while remaining conversational.
+
+- neutral:
+  Give a balanced, non-confrontational continuation. The reply should acknowledge
+  the sarcastic point without strongly agreeing, teasing, or pushing back.
+
+The paper experiment uses exactly these three requested styles: teasing,
+pushback, and neutral.
+
+----------------------------------------
+Quality Requirements
+----------------------------------------
+
+The reply should:
+- address the LAST comment, not an earlier comment only;
+- recognize the sarcastic implication instead of taking the wording literally;
+- fit the thread's language and platform style when possible;
+- avoid generic filler such as "I agree" without context;
+- avoid explaining what sarcasm is;
+- avoid meta-commentary about being an AI model or about the benchmark;
+- be concise enough to resemble an online reply, unless the context naturally
+  calls for a longer answer.
+
+----------------------------------------
+Input
+----------------------------------------
+
+Requested response style:
+__RESPONSE_STYLE__
+
+Comment thread:
+__THREAD_TEXT__
+
+----------------------------------------
+Output
+----------------------------------------
+
+Write only the reply text. Do not include labels, analysis, or JSON.

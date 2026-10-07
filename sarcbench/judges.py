@@ -12,7 +12,8 @@ from sarcbench.candidates import add_usage, parse_tasks, print_plan
 from sarcbench.config import ModelSpec, RunConfig
 from sarcbench.http_client import call_text_model
 from sarcbench.io import append_jsonl, iter_jsonl, load_completed_ids, load_jsonl, task_path, write_json
-from sarcbench.metrics import parse_json_object, summarize_judgment_rows
+from sarcbench.metrics import parse_json_object, summarize_judgment_rows, filter_judgment_rows, judgment_instance_key
+from sarcbench.families import same_family
 from sarcbench.prompts import load_prompt_templates, render_task2_judge_prompt, render_task3_judge_prompt
 from sarcbench.styles import task2_instance_id
 
@@ -175,9 +176,12 @@ def run_judge_task(
         completed = load_completed_ids(judgments_path, key_fields=("sample_id", "judge_model", "judge_repeat"))
         completed |= load_completed_ids(errors_path, key_fields=("sample_id", "judge_model", "judge_repeat"))
 
+    eligible_judges = [judge for judge in judges if not config.protocol.exclude_self_family or not same_family(candidate.alias, judge.alias, candidate.family, judge.family)]
+    if not eligible_judges:
+        raise ValueError(f"No non-self judges remain for {candidate.alias}")
     pending = []
     for row in prediction_rows:
-        for judge in judges:
+        for judge in eligible_judges:
             for repeat in range(1, config.protocol.judge_repeats + 1):
                 key = "||".join([row["sample_id"], judge.alias, str(repeat)])
                 if task == "task2":
@@ -221,8 +225,14 @@ def run_judge_task(
             if verbose or index % 100 == 0:
                 print(f"[judge] candidate={candidate.alias} task={task} completed={index}/{len(pending)}", flush=True)
 
-    judgment_rows = load_jsonl(judgments_path)
-    metrics = summarize_judgment_rows(judgment_rows, task)
+    requested_keys = {judgment_instance_key(row, task) for row in prediction_rows}
+    judgment_rows = [row for row in load_jsonl(judgments_path) if judgment_instance_key(row, task) in requested_keys]
+    for row in judgment_rows:
+        row["candidate_family"] = candidate.family
+        row["judge_family"] = next((judge.family for judge in judges if judge.alias == row["judge_model"]), row.get("judge_family"))
+    metrics = summarize_judgment_rows(judgment_rows, task, exclude_self_family=config.protocol.exclude_self_family)
+    retained_rows = filter_judgment_rows(judgment_rows, exclude_self_family=config.protocol.exclude_self_family)
+    valid_keys = {judgment_instance_key(row, task) for row in retained_rows}
     metrics.update(
         {
             "candidate_model": candidate.alias,
@@ -230,12 +240,17 @@ def run_judge_task(
             "sample_score_file": str(sample_scores_path),
             "error_file": str(errors_path),
             "num_errors": sum(1 for _ in iter_jsonl(errors_path)),
-            "expected_judgments_per_sample": len(judges) * config.protocol.judge_repeats,
+            "raw_judgments_requested_per_sample": len(judges) * config.protocol.judge_repeats,
+            "expected_judgments_per_sample": len(eligible_judges) * config.protocol.judge_repeats,
+            "num_predictions_attempted": len(prediction_rows),
+            "num_predictions_without_valid_judgments": len(requested_keys - valid_keys),
+            "num_expected_nonself_calls": len(prediction_rows) * len(eligible_judges) * config.protocol.judge_repeats,
+            "num_missing_nonself_calls": len(prediction_rows) * len(eligible_judges) * config.protocol.judge_repeats - len(retained_rows),
             "usage": usage_totals,
             "finished_at": now(),
         }
     )
-    write_sample_scores(sample_scores_path, judgment_rows, task)
+    write_sample_scores(sample_scores_path, retained_rows, task, exclude_self_family=config.protocol.exclude_self_family)
     write_json(metrics_path, metrics)
     return metrics
 
@@ -277,7 +292,7 @@ def call_judge_once(
                 judge,
                 prompt,
                 temperature=config.protocol.judge_temperature,
-                timeout=config.protocol.request_timeout,
+                timeout=judge.request_timeout or config.protocol.request_timeout,
                 max_attempts=1,
             )
             add_usage(usage_total, usage)
@@ -288,6 +303,9 @@ def call_judge_once(
                 "task": task,
                 "candidate_model": prediction_row["candidate_model"],
                 "judge_model": judge.alias,
+                "judge_family": judge.family,
+                "candidate_family": prediction_row.get("candidate_family"),
+                "judge_spec": judge.public_dict(),
                 "judge_repeat": str(repeat),
                 "prediction": candidate_text,
                 "gold": benchmark_record.get("gold"),
@@ -299,7 +317,7 @@ def call_judge_once(
             if task == "task2":
                 result["requested_style"] = requested_style
                 result["reply_style_label"] = requested_style
-                result["gold_reply_style_label"] = benchmark_record.get("gold", {}).get("reply_style_label")
+                result["gold_reply_style_label"] = requested_style if "reference_replies" in benchmark_record.get("gold", {}) else benchmark_record.get("gold", {}).get("reply_style_label")
                 result["task_instance_id"] = task2_instance_id(benchmark_record["sample_id"], requested_style)
             if retry_errors:
                 result["retry_errors"] = retry_errors
@@ -331,17 +349,17 @@ def validate_judgment_schema(task: str, judgment: dict[str, Any]) -> None:
         raise ValueError(f"invalid judge schema: missing explanations={missing_explanations}")
 
 
-def write_sample_scores(path: Path, judgment_rows: list[dict[str, Any]], task: str) -> None:
+def write_sample_scores(path: Path, judgment_rows: list[dict[str, Any]], task: str, *, exclude_self_family: bool = True) -> None:
     path.unlink(missing_ok=True)
     by_sample: dict[str, list[dict[str, Any]]] = {}
-    for row in judgment_rows:
+    for row in filter_judgment_rows(judgment_rows, exclude_self_family=exclude_self_family):
         if task == "task2":
             key = task2_instance_id(row["sample_id"], str(row.get("requested_style") or row.get("reply_style_label") or ""))
         else:
             key = row["sample_id"]
         by_sample.setdefault(key, []).append(row)
     for _, rows in sorted(by_sample.items()):
-        summary = summarize_judgment_rows(rows, task)
+        summary = summarize_judgment_rows(rows, task, exclude_self_family=exclude_self_family)
         payload = {
             "sample_id": rows[0]["sample_id"],
             "task": task,
@@ -349,6 +367,8 @@ def write_sample_scores(path: Path, judgment_rows: list[dict[str, Any]], task: s
             "num_judgments": summary["num_judgments"],
             "score": summary["mean_score"],
             "score_pct": summary["mean_score_pct"],
+            "score_version": summary["score_version"],
+            "overall_pass_rate": summary["overall_pass_rate"],
             "criteria": summary["criteria"],
             "explanations": [
                 {

@@ -112,7 +112,7 @@ Example 2:
 Context: Parent: "The creator apologized for a typo in the caption."
 Intended meaning: The speaker thinks the criticism of the typo is excessive.
 Target: people overreacting to the typo
-Preferred mechanisms: ["understatement", "contrast_with_context"]
+Preferred mechanisms: ["exaggeration", "contrast_with_context"]
 Reference sarcastic comment: "Yeah, a typo in a caption, truly civilization's
 final warning sign."
 Candidate sarcastic comment: "The caption has a typo."
@@ -130,7 +130,7 @@ Expected JSON:
     "sarcastic_tone": "The sentence is literal rather than sarcastic.",
     "context_fit": "It is about the caption typo, so it fits the topic.",
     "target_consistency": "It does not mock people overreacting to the typo.",
-    "mechanism_alignment": "It does not use understatement or contextual contrast.",
+    "mechanism_alignment": "It does not use exaggeration or contextual contrast.",
     "natural_style": "The sentence is natural but too literal.",
     "overall": "The candidate fails because it is a literal statement and misses the intended sarcastic meaning."
   }

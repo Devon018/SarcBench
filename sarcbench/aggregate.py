@@ -9,6 +9,7 @@ from typing import Any
 
 from sarcbench.config import RunConfig
 from sarcbench.io import write_json
+from sarcbench.metrics import SCORE_VERSION
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -38,6 +39,15 @@ def aggregate_candidate(config: RunConfig, alias: str, display_name: str) -> dic
     task2 = load_json(judge_dir / "task2_judge_metrics.json")
     task3 = load_json(judge_dir / "task3_judge_metrics.json")
 
+    for task_name, metrics in [("task2", task2), ("task3", task3)]:
+        if metrics.get("score_version") != SCORE_VERSION:
+            raise ValueError(f"{alias}/{task_name}: stale metric; reaggregate raw judgments with the six-criterion non-self scorer.")
+        if config.protocol.exclude_self_family and not metrics.get("exclude_self_family"):
+            raise ValueError(f"{alias}/{task_name}: same-family judgments have not been excluded.")
+        if metrics.get("mean_score_pct") is None:
+            raise ValueError(f"{alias}/{task_name}: no valid non-self judgments; do not report a zero score.")
+    if not task1.get("n") or task1.get("task1_macro_accuracy_pct") is None:
+        raise ValueError(f"{alias}/task1: no valid Understanding predictions; do not report zero accuracy.")
     task1_overall = task1.get("task1_macro_accuracy_pct", 0.0)
     task2_overall = task2.get("mean_score_pct", 0.0)
     task3_overall = task3.get("mean_score_pct", 0.0)
@@ -49,6 +59,8 @@ def aggregate_candidate(config: RunConfig, alias: str, display_name: str) -> dic
         "task1_target": task1.get("target_exact_pct", 0.0),
         "task1_mechanism": task1.get("mechanism_exact_pct", 0.0),
         "task1_overall": task1_overall,
+        "task1_joint_exact": task1.get("joint_exact_pct"),
+        "score_version": SCORE_VERSION,
         "task2_teasing": style_score(task2_by_style, "teasing"),
         "task2_pushback": style_score(task2_by_style, "pushback"),
         "task2_neutral": style_score(task2_by_style, "neutral"),

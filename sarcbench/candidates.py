@@ -11,7 +11,7 @@ from typing import Any
 from sarcbench.config import ModelSpec, RunConfig
 from sarcbench.http_client import call_text_model
 from sarcbench.io import TASK_FILES, append_jsonl, iter_jsonl, load_completed_ids, task_path, write_json
-from sarcbench.metrics import aggregate_task1, score_task1
+from sarcbench.metrics import aggregate_task1, score_task1, judgment_instance_key
 from sarcbench.prompts import load_prompt_templates, render_candidate_prompt
 from sarcbench.styles import TASK2_PAPER_STYLES, parse_task2_styles, task2_instance_id
 
@@ -185,19 +185,25 @@ def run_candidate_task(
             if verbose or index % 100 == 0:
                 print(f"[candidate] model={model.alias} task={task} completed={index}/{len(pending)}", flush=True)
 
+    allowed_keys = {
+        f"{record['sample_id']}||{style}" if task == "task2" else str(record["sample_id"])
+        for record in records for style in (task2_styles if task == "task2" else [None])
+    }
+    valid_rows = [row for row in iter_jsonl(predictions_path) if judgment_instance_key(row, task) in allowed_keys]
+    error_rows = [row for row in iter_jsonl(errors_path) if judgment_instance_key(row, task) in allowed_keys]
     if task == "task1":
-        existing_metrics = [row["metrics"] for row in iter_jsonl(predictions_path)]
-        metrics = aggregate_task1(existing_metrics)
+        metrics = aggregate_task1(row["metrics"] for row in valid_rows)
     else:
-        metrics = {
-            "n": sum(1 for _ in iter_jsonl(predictions_path)),
-        }
+        metrics = {"n": len(valid_rows)}
         if task == "task2":
             metrics["num_base_samples"] = len(records)
             metrics["requested_styles"] = list(task2_styles)
     metrics.update(
         {
-            "num_errors": sum(1 for _ in iter_jsonl(errors_path)),
+            "num_errors": len(error_rows),
+            "num_attempted": len(records) * (len(task2_styles) if task == "task2" else 1),
+            "num_valid": len(valid_rows),
+            "failure_policy": "exclude_and_report; do not impute a successful prediction",
             "prediction_file": str(predictions_path),
             "error_file": str(errors_path),
             "usage": usage_totals,
@@ -229,8 +235,8 @@ def call_candidate_once(
             response_text, usage, raw_response = call_text_model(
                 model,
                 prompt,
-                temperature=config.protocol.candidate_temperature,
-                timeout=config.protocol.request_timeout,
+                temperature=model.temperature if model.temperature is not None else config.protocol.candidate_temperature,
+                timeout=model.request_timeout or config.protocol.request_timeout,
                 max_attempts=1,
             )
             add_usage(usage_total, usage)
@@ -241,6 +247,8 @@ def call_candidate_once(
                 "sample_id": record["sample_id"],
                 "task": task,
                 "candidate_model": model.alias,
+                "candidate_family": model.family,
+                "model_spec": model.public_dict(),
                 "prediction": prediction,
                 "gold": record.get("gold"),
                 "usage": usage_total,
@@ -253,7 +261,7 @@ def call_candidate_once(
                 result["task_instance_id"] = task2_instance_id(record["sample_id"], requested_style)
                 result["requested_style"] = requested_style
                 result["reply_style_label"] = requested_style
-                result["gold_reply_style_label"] = record.get("gold", {}).get("reply_style_label")
+                result["gold_reply_style_label"] = requested_style if "reference_replies" in record.get("gold", {}) else record.get("gold", {}).get("reply_style_label")
             if task == "task1":
                 parsed_prediction, metrics = score_task1(record, response_text)
                 result["parsed_prediction"] = parsed_prediction

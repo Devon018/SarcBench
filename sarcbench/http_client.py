@@ -39,7 +39,12 @@ def call_openai_chat(
     timeout: float,
     max_attempts: int,
 ) -> tuple[str, dict[str, int], dict[str, Any]]:
-    base_url = spec.resolved_base_url() or "https://api.openai.com/v1"
+    base_url = spec.resolved_base_url()
+    if not base_url:
+        if spec.provider == "openai":
+            base_url = "https://api.openai.com/v1"
+        else:
+            raise ModelRequestError(f"Missing compatible endpoint for {spec.alias}; set {spec.base_url_env}")
     api_key = spec.resolved_api_key()
     if not api_key and spec.deployment != "openai_compatible_endpoint":
         raise ModelRequestError(f"Missing API key for {spec.alias}; set {spec.api_key_env}")
@@ -48,9 +53,10 @@ def call_openai_chat(
         "model": spec.request_name,
         "messages": [{"role": "user", "content": prompt}],
         "temperature": temperature,
-        "max_tokens": spec.max_tokens,
         "stream": False,
     }
+    if spec.max_tokens is not None:
+        payload["max_tokens"] = spec.max_tokens
     payload.update(spec.extra_body)
     headers = {
         "Content-Type": "application/json",
@@ -75,6 +81,8 @@ def call_anthropic_messages(
         raise ModelRequestError(f"Missing API key for {spec.alias}; set {spec.api_key_env}")
     base_url = spec.resolved_base_url() or "https://api.anthropic.com"
     url = base_url.rstrip("/") + "/v1/messages"
+    if spec.max_tokens is None:
+        raise ModelRequestError("Native Anthropic messages require an explicit max_tokens; use the compatible paper endpoint for the paper protocol.")
     payload: dict[str, Any] = {
         "model": spec.request_name,
         "max_tokens": spec.max_tokens,
@@ -119,9 +127,10 @@ def call_gemini_generate(
         "contents": [{"role": "user", "parts": [{"text": prompt}]}],
         "generationConfig": {
             "temperature": temperature,
-            "maxOutputTokens": spec.max_tokens,
         },
     }
+    if spec.max_tokens is not None:
+        payload["generationConfig"]["maxOutputTokens"] = spec.max_tokens
     payload.update(spec.extra_body)
     data = request_json(
         url,

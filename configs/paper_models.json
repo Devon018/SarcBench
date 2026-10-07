@@ -1,77 +1,107 @@
 {
   "paths": {
     "data_dir": "data",
-    "output_dir": "outputs/paper_main",
-    "prompts_dir": "evaluation/prompts"
+    "output_dir": "outputs/neurips2026_main",
+    "prompts_dir": "evaluation/prompts/paper_2026_original"
   },
   "protocol": {
-    "candidate_temperature": 0.7,
+    "candidate_temperature": 0.0,
     "judge_temperature": 0.0,
     "judge_repeats": 3,
     "request_timeout": 120.0,
     "max_attempts": 1,
     "max_workers": 8,
-    "judge_workers": 8
+    "judge_workers": 8,
+    "exclude_self_family": true
   },
   "candidate_models": [
     {
-      "alias": "gpt-5.5",
-      "display_name": "GPT-5.5",
-      "provider": "openai",
+      "alias": "gpt-5.4",
+      "display_name": "GPT-5.4",
+      "provider": "openai_compatible",
       "deployment": "provider_api",
-      "model": "GPT-5.5",
+      "model": "gpt-5.4",
       "api_key_env": "OPENAI_API_KEY",
-      "max_tokens": 512
+      "max_tokens": null,
+      "family": "gpt",
+      "base_url_env": "OPENAI_BASE_URL",
+      "temperature": 0.0,
+      "request_timeout": 120,
+      "notes": "Paper request identifier; compatible endpoint must resolve this alias to the stated model. Endpoint mapping and historical run verification require author records."
     },
     {
       "alias": "gemini-3.1-pro",
       "display_name": "Gemini 3.1 Pro",
-      "provider": "gemini",
+      "provider": "openai_compatible",
       "deployment": "provider_api",
       "model": "gemini-3.1-pro",
       "api_key_env": "GEMINI_API_KEY",
-      "max_tokens": 512
+      "max_tokens": null,
+      "family": "gemini",
+      "base_url_env": "GEMINI_COMPATIBLE_BASE_URL",
+      "temperature": 0.0,
+      "request_timeout": 120,
+      "notes": "Paper request identifier; compatible endpoint must resolve this alias to the stated model. Endpoint mapping and historical run verification require author records."
     },
     {
-      "alias": "claude-opus-4.8",
-      "display_name": "Claude Opus 4.8",
-      "provider": "anthropic",
+      "alias": "claude-opus-4.6",
+      "display_name": "Claude Opus 4.6",
+      "provider": "openai_compatible",
       "deployment": "provider_api",
-      "model": "claude-opus-4.8",
+      "model": "claude-opus-4.6",
       "api_key_env": "ANTHROPIC_API_KEY",
-      "max_tokens": 512
+      "max_tokens": null,
+      "family": "claude",
+      "base_url_env": "CLAUDE_COMPATIBLE_BASE_URL",
+      "temperature": 0.0,
+      "request_timeout": 120,
+      "notes": "Paper request identifier; compatible endpoint must resolve this alias to the stated model. Endpoint mapping and historical run verification require author records."
     },
     {
-      "alias": "qwen-3.7-plus",
-      "display_name": "Qwen 3.7 Plus",
+      "alias": "qwen-3.6-plus",
+      "display_name": "Qwen 3.6 Plus",
       "provider": "openai_compatible",
       "deployment": "provider_api",
       "model": "qwen3.6-plus",
       "base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1",
       "base_url_env": "QWEN_BASE_URL",
       "api_key_env": "QWEN_API_KEY",
-      "max_tokens": 512
+      "max_tokens": null,
+      "family": "qwen",
+      "temperature": 0.7,
+      "request_timeout": 120,
+      "extra_body": {
+        "enable_thinking": false
+      },
+      "notes": "Paper request identifier; compatible endpoint must resolve this alias to the stated model. Endpoint mapping and historical run verification require author records."
     },
     {
-      "alias": "deepseek-v4",
-      "display_name": "DeepSeek V4",
+      "alias": "deepseek-v3.2",
+      "display_name": "DeepSeek V3.2",
       "provider": "openai_compatible",
       "deployment": "provider_api",
-      "model": "DeepSeek V4",
-      "base_url": "https://api.deepseek.com/v1",
+      "model": "deepseek-v3.2",
       "base_url_env": "DEEPSEEK_BASE_URL",
       "api_key_env": "DEEPSEEK_API_KEY",
-      "max_tokens": 512
+      "max_tokens": null,
+      "family": "deepseek",
+      "temperature": 0.0,
+      "request_timeout": 120,
+      "notes": "Paper request identifier; compatible endpoint must resolve this alias to the stated model. Endpoint mapping and historical run verification require author records."
     },
     {
-      "alias": "minimax-3",
-      "display_name": "MiniMax 3",
+      "alias": "minimax-2.7",
+      "display_name": "MiniMax 2.7",
       "provider": "openai_compatible",
       "deployment": "provider_api",
       "model": "minimax-2.7",
       "base_url_env": "MINIMAX_BASE_URL",
       "api_key_env": "MINIMAX_API_KEY",
-      "max_tokens": 512
+      "max_tokens": null,
+      "family": "minimax",
+      "temperature": 0.0,
+      "request_timeout": 120,
+      "notes": "Paper request identifier; compatible endpoint must resolve this alias to the stated model. Endpoint mapping and historical run verification require author records."
     },
     {
       "alias": "mimo-v2-pro",
@@ -81,7 +111,11 @@
       "model": "mimo-v2-pro",
       "base_url_env": "MIMO_BASE_URL",
       "api_key_env": "MIMO_API_KEY",
-      "max_tokens": 512
+      "max_tokens": null,
+      "family": "mimo",
+      "temperature": 0.0,
+      "request_timeout": 120,
+      "notes": "Paper request identifier; compatible endpoint must resolve this alias to the stated model. Endpoint mapping and historical run verification require author records."
     },
     {
       "alias": "qwen-3.6-35b",
@@ -92,7 +126,16 @@
       "base_url": "http://127.0.0.1:8010/v1",
       "base_url_env": "QWEN_35B_BASE_URL",
       "api_key": "EMPTY",
-      "max_tokens": 512
+      "max_tokens": null,
+      "family": "qwen",
+      "temperature": 0.7,
+      "request_timeout": 120,
+      "revision": "995ad96eacd98c81ed38be0c5b274b04031597b0",
+      "extra_body": {
+        "chat_template_kwargs": {
+          "enable_thinking": false
+        }
+      }
     },
     {
       "alias": "gemma-4-31b",
@@ -103,7 +146,11 @@
       "base_url": "http://127.0.0.1:8011/v1",
       "base_url_env": "GEMMA_31B_BASE_URL",
       "api_key": "EMPTY",
-      "max_tokens": 512
+      "max_tokens": null,
+      "family": "gemma",
+      "temperature": 0.0,
+      "request_timeout": 120,
+      "revision": "145dc2508c480a64b47242f160d286cff94a2343"
     },
     {
       "alias": "phi-4",
@@ -114,7 +161,11 @@
       "base_url": "http://127.0.0.1:8012/v1",
       "base_url_env": "PHI4_BASE_URL",
       "api_key": "EMPTY",
-      "max_tokens": 512
+      "max_tokens": null,
+      "family": "phi",
+      "temperature": 0.0,
+      "request_timeout": 120,
+      "revision": "932b33c0ec9ca189badeb22480721a8de9d0e006"
     },
     {
       "alias": "llama-4-scout",
@@ -125,7 +176,11 @@
       "base_url": "http://127.0.0.1:8013/v1",
       "base_url_env": "LLAMA4_SCOUT_BASE_URL",
       "api_key": "EMPTY",
-      "max_tokens": 512
+      "max_tokens": null,
+      "family": "llama",
+      "temperature": 0.0,
+      "request_timeout": 120,
+      "revision": "92f3b1597a195b523d8d9e5700e57e4fbb8f20d3"
     },
     {
       "alias": "mistral-7b-instruct",
@@ -136,36 +191,61 @@
       "base_url": "http://127.0.0.1:8014/v1",
       "base_url_env": "MISTRAL_7B_BASE_URL",
       "api_key": "EMPTY",
-      "max_tokens": 512
+      "max_tokens": null,
+      "family": "mistral",
+      "temperature": 0.0,
+      "request_timeout": 120,
+      "revision": "c170c708c41dac9275d15a8fff4eca08d52bab71"
     }
   ],
   "judge_models": [
     {
-      "alias": "gpt-5.5",
-      "display_name": "GPT-5.5",
-      "provider": "openai",
+      "alias": "gpt-5.4",
+      "display_name": "GPT-5.4",
+      "provider": "openai_compatible",
       "deployment": "provider_api",
-      "model": "GPT-5.5",
+      "model": "gpt-5.4",
       "api_key_env": "OPENAI_API_KEY",
-      "max_tokens": 256
+      "max_tokens": null,
+      "family": "gpt",
+      "base_url_env": "OPENAI_BASE_URL",
+      "temperature": 0.0,
+      "request_timeout": 120,
+      "notes": "Paper request identifier; compatible endpoint must resolve this alias to the stated model. Endpoint mapping and historical run verification require author records."
     },
     {
       "alias": "gemini-3.1-pro",
       "display_name": "Gemini 3.1 Pro",
-      "provider": "gemini",
+      "provider": "openai_compatible",
       "deployment": "provider_api",
       "model": "gemini-3.1-pro",
       "api_key_env": "GEMINI_API_KEY",
-      "max_tokens": 256
+      "max_tokens": null,
+      "family": "gemini",
+      "base_url_env": "GEMINI_COMPATIBLE_BASE_URL",
+      "temperature": 0.0,
+      "request_timeout": 120,
+      "notes": "Paper request identifier; compatible endpoint must resolve this alias to the stated model. Endpoint mapping and historical run verification require author records."
     },
     {
-      "alias": "claude-opus-4.8",
-      "display_name": "Claude Opus 4.8",
-      "provider": "anthropic",
+      "alias": "claude-opus-4.6",
+      "display_name": "Claude Opus 4.6",
+      "provider": "openai_compatible",
       "deployment": "provider_api",
-      "model": "claude-opus-4.8",
+      "model": "claude-opus-4.6",
       "api_key_env": "ANTHROPIC_API_KEY",
-      "max_tokens": 256
+      "max_tokens": null,
+      "family": "claude",
+      "base_url_env": "CLAUDE_COMPATIBLE_BASE_URL",
+      "temperature": 0.0,
+      "request_timeout": 120,
+      "notes": "Paper request identifier; compatible endpoint must resolve this alias to the stated model. Endpoint mapping and historical run verification require author records."
     }
-  ]
+  ],
+  "release": {
+    "venue": "NeurIPS 2026 Evaluations and Datasets",
+    "score_version": "six-criteria-nonself-v1",
+    "historical_results_verified": false,
+    "description": "Implementation aligned to the published NeurIPS protocol; original per-sample experimental logs are not included."
+  }
 }

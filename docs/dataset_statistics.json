@@ -1,0 +1,150 @@
+{
+  "events": 30083,
+  "base_task_records": 90249,
+  "full_context_queries_per_model": 150415,
+  "hashes": {
+    "benchmark_master.jsonl": "9bbb98f49a88b041890bb5149528aae07dca8ef889c8de89d43797399f3fc171",
+    "task1_benchmark.jsonl": "db4379c0e36d5e77a5c77d55f5b687ca08885c95638211bcd5d3ec4d28c83aa2",
+    "task2_benchmark.jsonl": "c7c7a00a4dfdefca812783ba660658b8eb08afef3eb10e1a8f9e4496b637f2e5",
+    "task3_benchmark.jsonl": "059cd9316a7148923313237ae9a8afaab20c4825e72f77ccd70a345511a4a9ce"
+  },
+  "comment_character_means": {
+    "task1": {
+      "all": 548.1790047535153,
+      "zh": 390.85736860587616,
+      "en": 754.9957682542125
+    },
+    "task3": {
+      "all": 462.6227105009474,
+      "zh": 338.8327285496898,
+      "en": 625.3583903977841
+    }
+  },
+  "task_views": {
+    "task1": {
+      "n": 30083,
+      "unique_ids": 30083,
+      "numeric_ids": 30083,
+      "aligned_ids": true
+    },
+    "task2": {
+      "n": 30083,
+      "unique_ids": 30083,
+      "numeric_ids": 30083,
+      "aligned_ids": true,
+      "three_style_references": 30083
+    },
+    "task3": {
+      "n": 30083,
+      "unique_ids": 30083,
+      "numeric_ids": 30083,
+      "aligned_ids": true
+    }
+  },
+  "label_counts_including_other": {
+    "contrast_with_context": 11902,
+    "exaggeration": 17798,
+    "polarity_reversal": 20272,
+    "rhetorical_question": 3674,
+    "understatement": 2072,
+    "sarcasm_marker": 1264,
+    "other": 499
+  },
+  "full_label_cardinality": {
+    "2": 26718,
+    "1": 3025,
+    "3": 340
+  },
+  "canonical_label_cardinality": {
+    "2": 26394,
+    "1": 3174,
+    "3": 340,
+    "0": 175
+  },
+  "canonical_annotation_total": 56982,
+  "canonical_prevalence_pct": {
+    "polarity_reversal": 67.3868962536981,
+    "exaggeration": 59.16298241531762,
+    "contrast_with_context": 39.5638732839145,
+    "rhetorical_question": 12.212877705016123,
+    "understatement": 6.887610943057541,
+    "sarcasm_marker": 4.201708606189542
+  },
+  "gold_canonical_share_pct": {
+    "polarity_reversal": 35.5761468533923,
+    "exaggeration": 31.234424906110704,
+    "contrast_with_context": 20.88729774314696,
+    "rhetorical_question": 6.4476501351303925,
+    "understatement": 3.6362360043522517,
+    "sarcasm_marker": 2.2182443578673965
+  },
+  "gold_canonical_entropy_bits": 2.0774679520467165,
+  "other_label_instances": 499,
+  "mean_full_label_cardinality": 1.9107469334840275,
+  "context_counts": {
+    "parent_only": 16995,
+    "thread_needed": 11593,
+    "independent": 1189,
+    "video_context_needed": 306
+  },
+  "context_dependent_n": 28894,
+  "context_dependent_pct": 96.04760163547519,
+  "conditional_context_pct": {
+    "parent_only": 58.81843981449436,
+    "thread_needed": 40.1225167854918,
+    "video_context_needed": 1.0590434000138438
+  },
+  "context_by_language": {
+    "zh": {
+      "parent_only": 8699,
+      "thread_needed": 7663,
+      "independent": 564,
+      "video_context_needed": 160
+    },
+    "en": {
+      "parent_only": 8296,
+      "thread_needed": 3930,
+      "video_context_needed": 146,
+      "independent": 625
+    }
+  },
+  "intent_counts": {
+    "ridicule": 13465,
+    "disapproval": 2034,
+    "dismissive_criticism": 11196,
+    "mocking_praise": 1527,
+    "disbelief": 998,
+    "frustrated_complaint": 341,
+    "warning_through_mockery": 185,
+    "self_deprecation": 216,
+    "blame": 61,
+    "defensive_mockery": 47,
+    "other": 13
+  },
+  "intent_prevalence_pct": {
+    "ridicule": 44.759498720207425,
+    "disapproval": 6.761293753947412,
+    "dismissive_criticism": 37.21703287571054,
+    "mocking_praise": 5.075956520293854,
+    "disbelief": 3.317488282418642,
+    "frustrated_complaint": 1.133530565435628,
+    "warning_through_mockery": 0.6149652627729947,
+    "self_deprecation": 0.7180134959944154,
+    "blame": 0.20277232988731178,
+    "defensive_mockery": 0.15623441810989597,
+    "other": 0.043213775221886117
+  },
+  "strength_counts": {
+    "medium": 15836,
+    "strong": 13772,
+    "weak": 475
+  },
+  "annotation_models": {
+    "qwen/qwen3.6-plus:free": 30083
+  },
+  "reconstruction_counts": {
+    "append": 16292,
+    "none": 12263,
+    "rewrite": 1528
+  }
+}
