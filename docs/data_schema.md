@@ -1,81 +1,32 @@
-# Data Schema
+# Released dataset schema
 
-The release contains four JSONL files under `data/`.
+The three task views are byte copies of the public hosted release pinned in
+`data/release_manifest.json`. All 30,083 opaque numeric IDs are aligned across
+task views and the public master; no source platform identifier is encoded in
+those IDs. Earlier Git history retains the original import; these statements
+refer to the current release files.
 
-## `benchmark_master.jsonl`
+- Understanding: `sample_id`, `comments`, `IntentOptions`, `TargetOptions`, and
+  `gold.{Intent,Target,Mechanism}`.
+- Response: `sample_id`, `comments`, and
+  `gold.reference_replies.{teasing,pushback,neutral}`.
+- Generation: `sample_id`, `comments`, `intended_meaning`, and
+  `gold.{reference_sarcastic_comment,target,preferred_mechanisms}`.
 
-The master file stores full aligned sarcasm events. It includes video metadata,
-parent comment, original and reconstructed replies, target sarcastic reply,
-core annotations, and the three task projections.
+The public master adds platform/language, textual video metadata, parent and
+reconstructed replies, the target turn, core annotations, annotation-model
+metadata, and reconstruction provenance. Source video/comment IDs, source URLs,
+and unused original raw-reply metadata are omitted. Public text itself may
+still contain names, nicknames, offensive language, or cultural references.
 
-Important fields include:
+Six canonical mechanisms are accompanied by a residual `other` fallback.
+The 1/2/3-label cardinality distribution includes `other`. Canonical prevalence
+uses all 30,083 events as its denominator. Canonical gold shares and entropy use
+only occurrences of the six canonical labels as their denominator. Records
+containing only `other` contribute to total event counts/cardinality, but not
+to canonical-label occurrence counts. Never mix these denominators.
 
-- `sample_id`
-- `platform`
-- `prompt_language`
-- `video_title`
-- `video_description`
-- `parent_comment`
-- `reconstructed_replies`
-- `target_sarcastic_reply`
-- `core_annotation`
-- `task1`
-- `task2`
-- `task3`
-
-## `task1_benchmark.jsonl`
-
-Task 1 is the direct-label task. Each row contains:
-
-- `sample_id`
-- `platform`
-- `comments`
-- `IntentOptions`
-- `TargetOptions`
-- `gold.Intent`
-- `gold.Target`
-- `gold.Mechanism`
-
-The model must return JSON with `Intent`, `Target`, and `Mechanism`.
-
-## `task2_benchmark.jsonl`
-
-Task 2 is response generation. Each row contains:
-
-- `sample_id`
-- `platform`
-- `comments`
-- `gold.reference_reply`
-- `gold.reply_style_label`
-
-This file stores the base sample and the released reference reply. During the
-paper evaluation, each base row is expanded into three requested styles:
-`teasing`, `pushback`, and `neutral`. Candidate prediction rows therefore
-contain:
-
-- `task_instance_id`
-- `sample_id`
-- `requested_style`
-- `prediction`
-- `gold_reply_style_label`
-
-The judge sees the full thread, requested style, reference reply, reference
-reply source style, and candidate reply. The requested style controls
-style-matching; the reference reply is a content anchor for the same sarcasm
-event.
-
-## `task3_benchmark.jsonl`
-
-Task 3 is controlled sarcasm generation. Each row contains:
-
-- `sample_id`
-- `platform`
-- `comments`
-- `intended_meaning`
-- `gold.reference_sarcastic_comment`
-- `gold.target`
-- `gold.preferred_mechanisms`
-
-The model writes a sarcastic comment conditioned on the thread, intended meaning,
-and preferred mechanisms. The judge also receives the target and reference
-sarcastic comment.
+`requires_context=false` identifies context-independent events. Minimal context
+span percentages conditioned on context dependence exclude these events from
+the parent-only group. Context-dependent strata are not automatically the same
+as a target-location ablation subset.

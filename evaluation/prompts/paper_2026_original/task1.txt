@@ -1,0 +1,114 @@
+You are evaluating contextual sarcasm understanding in an online comment thread.
+
+The LAST comment in the thread is the target comment. Your job is to infer what
+the target comment means pragmatically in context, who or what it mocks, and how
+the sarcasm is realized linguistically.
+
+Use the whole visible thread, but make every decision about the LAST comment.
+Do not answer based only on isolated keywords. Sarcasm often depends on the
+parent comment, previous replies, platform-specific markers, or contrast between
+literal wording and conversational context.
+
+----------------------------------------
+Task 1A: Intent Recovery
+----------------------------------------
+Select all options that best describe the speaker's intended meaning. The
+intended meaning is the speaker's implied stance, not the literal surface
+meaning. One to three options may be correct.
+
+Guidelines:
+- Select multiple options only when the target comment clearly implies multiple
+  compatible intentions.
+- Do not select an option merely because it repeats a word from the thread.
+- Prefer the option that captures the sarcastic implication over the literal
+  wording.
+
+----------------------------------------
+Task 1B: Target Identification
+----------------------------------------
+Select exactly one target option. The target is the main person, claim,
+behavior, object, event, platform feature, or prior speaker being mocked or
+criticized by the LAST comment.
+
+Guidelines:
+- If the comment mocks an action, select the entity responsible for that action
+  when available.
+- If several entities are mentioned, choose the one that receives the main
+  sarcastic force.
+- Do not choose the author of the parent comment unless the LAST comment is
+  actually mocking that author.
+
+----------------------------------------
+Task 1C: Sarcasm Mechanism Classification
+----------------------------------------
+Select up to THREE mechanism labels that best describe how the LAST comment
+creates sarcasm.
+
+Mechanism definitions:
+
+- polarity_reversal:
+  The surface wording appears positive, approving, calm, or accepting, but the
+  intended stance is negative, mocking, skeptical, or critical. Example pattern:
+  saying "great job" to imply poor performance.
+
+- exaggeration:
+  The comment deliberately overstates quality, consequence, scale, certainty,
+  achievement, or failure beyond a realistic degree. The overstatement itself
+  signals the sarcastic stance.
+
+- understatement:
+  The comment deliberately minimizes or downplays a situation that is actually
+  more serious, absurd, bad, awkward, or impressive than the wording suggests.
+
+- rhetorical_question:
+  The comment uses a question form without genuinely requesting information.
+  The question pushes the reader toward an obvious critical or mocking
+  inference.
+
+- contrast_with_context:
+  The comment becomes sarcastic because it conflicts with the preceding thread,
+  video context, known situation, or expectations. In isolation it may look
+  neutral, but the context makes the literal reading implausible.
+
+- sarcasm_marker:
+  The sarcasm is signaled or strengthened by explicit markers such as emoji,
+  bracketed platform emotes, scare quotes, stylized punctuation, particles,
+  discourse markers, or formulaic online cues.
+
+- other:
+  The sarcastic strategy is present but does not cleanly fit the six categories
+  above.
+
+Rules:
+- If sarcasm is present, select the most central mechanisms, not every possible
+  weak cue.
+- If an emoji or marker is present but the main sarcasm comes from reversal or
+  exaggeration, include `sarcasm_marker` only when it materially helps identify
+  the sarcastic reading.
+- If no sarcasm is present, return empty values exactly as specified below.
+
+----------------------------------------
+Input
+----------------------------------------
+
+__TASK_INPUT_JSON__
+
+----------------------------------------
+Output Format
+----------------------------------------
+
+Return JSON only:
+
+{
+  "Intent": "AC",
+  "Target": "F",
+  "Mechanism": ["polarity_reversal", "exaggeration"]
+}
+
+Output constraints:
+- `Intent` must be a string containing zero or more option letters from A-D.
+- `Target` must be exactly one option letter from E-H, or an empty string only
+  if no sarcasm is present.
+- `Mechanism` must be a list with zero to three labels from the mechanism
+  inventory.
+- Do not include explanations, reasoning, confidence, or extra fields.

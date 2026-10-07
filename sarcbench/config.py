@@ -19,7 +19,11 @@ class ModelSpec:
     base_url_env: str | None = None
     api_key: str | None = None
     api_key_env: str | None = None
-    max_tokens: int = 512
+    max_tokens: int | None = None
+    family: str | None = None
+    temperature: float | None = None
+    request_timeout: float | None = None
+    revision: str | None = None
     extra_headers: dict[str, str] = field(default_factory=dict)
     extra_body: dict[str, Any] = field(default_factory=dict)
     notes: str | None = None
@@ -37,7 +41,11 @@ class ModelSpec:
             base_url_env=payload.get("base_url_env"),
             api_key=payload.get("api_key"),
             api_key_env=payload.get("api_key_env"),
-            max_tokens=int(payload.get("max_tokens", 512)),
+            max_tokens=None if payload.get("max_tokens") is None else int(payload["max_tokens"]),
+            family=payload.get("family"),
+            temperature=None if payload.get("temperature") is None else float(payload["temperature"]),
+            request_timeout=None if payload.get("request_timeout") is None else float(payload["request_timeout"]),
+            revision=payload.get("revision"),
             extra_headers=dict(payload.get("extra_headers") or {}),
             extra_body=dict(payload.get("extra_body") or {}),
             notes=payload.get("notes"),
@@ -71,6 +79,10 @@ class ModelSpec:
             "base_url_env": self.base_url_env,
             "api_key_env": self.api_key_env,
             "max_tokens": self.max_tokens,
+            "family": self.family,
+            "temperature": self.temperature,
+            "request_timeout": self.request_timeout,
+            "revision": self.revision,
             "extra_headers": self.extra_headers,
             "extra_body": self.extra_body,
             "notes": self.notes,
@@ -89,6 +101,7 @@ class ProtocolConfig:
     max_attempts: int
     max_workers: int
     judge_workers: int
+    exclude_self_family: bool = True
 
     @classmethod
     def from_dict(cls, payload: dict[str, Any]) -> "ProtocolConfig":
@@ -100,6 +113,7 @@ class ProtocolConfig:
             max_attempts=int(payload.get("max_attempts", 1)),
             max_workers=int(payload.get("max_workers", 8)),
             judge_workers=int(payload.get("judge_workers", 8)),
+            exclude_self_family=bool(payload.get("exclude_self_family", True)),
         )
 
 

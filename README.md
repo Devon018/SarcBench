@@ -19,7 +19,7 @@
 SarcBench is a bilingual benchmark for evaluating whether large language models
 can interpret sarcasm in context, respond to sarcastic comments with controlled
 social stance, and generate sarcastic comments under explicit pragmatic
-constraints. This repository is the clean reviewer-facing release: it contains
+constraints. This repository contains the NeurIPS 2026 protocol alignment: it contains
 the released data, prompts, main-experiment evaluation code, model/judge
 configuration, and protocol documentation. It does not include the paper source
 or generated result files.
@@ -128,8 +128,7 @@ schema.
 
 ## Experiment and Evaluation
 
-The default config in `configs/paper_models.json` follows the paper-equivalent
-main experiment.
+The default config in `configs/paper_models.json` implements the NeurIPS manuscript protocol. Original per-sample logs are needed to verify the author-reported table values; protocol alignment alone is not a reproduction claim.
 
 Set the API keys and endpoint base URLs referenced in
 [docs/configuration.md](docs/configuration.md), then run:
@@ -144,9 +143,9 @@ python3 scripts/render_leaderboard.py --input outputs/paper_main/results/main_re
 For a single candidate:
 
 ```bash
-python3 scripts/run_candidates.py --models gpt-5.5 --reset
-python3 scripts/run_judges.py --candidates gpt-5.5 --reset
-python3 scripts/aggregate_results.py --models gpt-5.5
+python3 scripts/run_candidates.py --models gpt-5.4 --reset
+python3 scripts/run_judges.py --candidates gpt-5.4 --reset
+python3 scripts/aggregate_results.py --models gpt-5.4
 python3 scripts/render_leaderboard.py --input outputs/paper_main/results/main_results.json
 ```
 
@@ -155,16 +154,16 @@ requests:
 
 ```bash
 python3 scripts/run_candidates.py --models all --tasks task1 --limit 1 --dry-run
-python3 scripts/run_judges.py --candidates gpt-5.5 --judges all --tasks task2 --limit 1 --dry-run
+python3 scripts/run_judges.py --candidates gpt-5.4 --judges all --tasks task2 --limit 1 --dry-run
 ```
 
 ## Model Roster
 
 | Role | Models |
 | --- | --- |
-| Closed-source candidates | GPT-5.5, Gemini 3.1 Pro, Claude Opus 4.8, Qwen 3.7 Plus, DeepSeek V4, MiniMax 3, MiMo V2 Pro |
+| Closed-source candidates | GPT-5.4, Gemini 3.1 Pro, Claude Opus 4.6, Qwen 3.6 Plus, DeepSeek V3.2, MiniMax 2.7, MiMo V2 Pro |
 | Open-source candidates | Qwen 3.6 35B, Gemma 4 31B, Phi-4, Llama 4 Scout, Mistral 7B Instruct |
-| Judge families | GPT-5.5, Gemini 3.1 Pro, Claude Opus 4.8 |
+| Judge families | GPT-5.4, Gemini 3.1 Pro, Claude Opus 4.6 |
 
 Open-source models are served through OpenAI-compatible local endpoints. The
 paper config records the served model identifiers, default ports, and endpoint
@@ -213,3 +212,23 @@ scripts/render_leaderboard.py    Ranked-table export entrypoint
   hidden by long retry loops.
 - The paper source and generated result artifacts are intentionally excluded
   from this release repository.
+
+## NeurIPS release verification
+
+The hosted task files are pinned at dataset revision
+`5b1539d8ba1d62d2281796be44f8fa14b8da3962`. Response has three style-specific
+references and all task views use opaque numeric sample IDs. The corrected
+scorer averages the six rubric criteria, excludes same-family judgments, and
+reports missing/failed denominators. It rejects old overall-pass metric files.
+
+```sh
+python3 -m unittest discover -s tests -v
+python3 scripts/audit_dataset.py
+python3 scripts/reaggregate_judgments.py --config configs/paper_models.json
+```
+
+Original calibration examples are preserved; corrected examples use
+`configs/paper_models_corrected_prompts.json` and require new judgments.
+The previous exploratory roster is in `configs/latest_models.json`.
+See [the protocol documentation](docs/evaluation_protocol.md) for exact weighting,
+failure treatment, provenance, and remaining historical-verification requirements.

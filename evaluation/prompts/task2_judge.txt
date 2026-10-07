@@ -133,25 +133,26 @@ Example 3:
 Requested style: neutral
 Thread: Parent: "The restaurant forgot every side dish." Last: "Amazing service,
 they saved us from the burden of having choices."
+Reference reply source style: teasing
 Reference reply: "Right, the minimalist dining experience nobody ordered."
 Candidate reply: "You should contact customer support about missing items."
 Expected JSON:
 {
   "conversational_fit": true,
   "addresses_last_comment": false,
-  "avoids_literal_trap": false,
-  "style_match": false,
+  "avoids_literal_trap": true,
+  "style_match": true,
   "socially_appropriate": true,
   "natural_style": true,
   "overall_pass": false,
   "explanation": {
     "conversational_fit": "The reply is related to missing restaurant items.",
     "addresses_last_comment": "It does not engage the sarcastic framing of the last comment.",
-    "avoids_literal_trap": "It treats the situation as a literal service complaint.",
-    "style_match": "The requested style is neutral, but the reply gives procedural advice.",
+    "avoids_literal_trap": "It recognizes the missing items as a complaint rather than taking the sarcastic praise literally.",
+    "style_match": "The advice maintains a neutral stance without teasing, agreement, or pushback.",
     "socially_appropriate": "The reply is polite and not harmful.",
     "natural_style": "It sounds like a normal support-oriented comment.",
-    "overall": "The candidate is usable customer-service advice but misses the sarcasm and requested neutral style."
+    "overall": "The candidate is neutral and polite but does not directly engage the sarcastic last comment."
   }
 }
 

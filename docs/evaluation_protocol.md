@@ -1,126 +1,95 @@
-# Evaluation Protocol
+# NeurIPS 2026 evaluation protocol
 
-This repository implements the main experiment described in the paper. It does
-not implement downstream research-question analysis, plotting, or manuscript
-generation.
+`configs/paper_models.json` implements the protocol described by the NeurIPS
+manuscript: GPT-5.4, Gemini 3.1 Pro, Claude Opus 4.6, Qwen 3.6 Plus, DeepSeek V3.2,
+MiniMax 2.7, MiMo V2 Pro, Qwen 3.6 35B, Gemma 4 31B, Phi-4, Llama 4 Scout, and
+Mistral 7B Instruct. These groups distinguish API-hosted from locally served
+models, not weight availability. DeepSeek V3.2 has public weights.
 
-## Candidate Models
+The previous default roster remains in `configs/latest_models.json` as a separate
+exploratory configuration. It is not the NeurIPS roster.
 
-The default roster in `configs/paper_models.json` contains the 12 paper models:
+## Scoring
 
-1. GPT-5.5
-2. Gemini 3.1 Pro
-3. Claude Opus 4.8
-4. Qwen 3.7 Plus
-5. DeepSeek V4
-6. MiniMax 3
-7. MiMo V2 Pro
-8. Qwen 3.6 35B
-9. Gemma 4 31B
-10. Phi-4
-11. Llama 4 Scout
-12. Mistral 7B Instruct
+Understanding uses intent/target/mechanism exact match, their macro average,
+and strict joint exact match. Mechanisms are unordered sets. The six canonical
+mechanisms and the `other` fallback are all retained for exact-match scoring;
+canonical distribution statistics explicitly exclude `other`.
 
-Closed-source models use provider APIs. Open-source models use the
-OpenAI-compatible chat endpoints configured in `configs/paper_models.json`.
-Reviewers can override endpoint URLs through the corresponding `*_BASE_URL`
-environment variables while preserving the paper model aliases.
+For Response and Generation, each valid non-self judgment receives one point
+for each of the six task-specific Boolean criteria. The normalized judgment
+score is their sum divided by six. `overall_pass` is a separate diagnostic and
+never contributes to this score. An instance's score is the mean of its valid
+non-self calls. A task's score is the unweighted mean of valid instance scores.
+Criterion summaries use the same equal-instance weighting. The scorer records
+`score_version=six-criteria-nonself-v1`; aggregation rejects legacy overall-pass
+metric files instead of silently combining incompatible metrics.
 
-## Tasks
+Family identity is independent of transport/provider: GPT judges cannot judge
+GPT candidates, including a different GPT version; Claude excludes Claude and
+Gemini excludes Gemini. Gemma is a different family from Gemini. Same-family
+calls are not dispatched, and saved legacy self-judgments are filtered again
+when reaggregated. Three judge families and three repeats imply nine nominal
+raw slots, or six eligible non-self slots for candidates in one judge family.
+Other candidates have nine eligible slots, before failed calls.
 
-Task 1, Intent Recognition, asks a model to recover:
+The 30,083 events project into 90,249 base task records. Expanding each Response
+record into teasing, pushback, and neutral yields 150,415 full-context queries
+per model. Response rows are grouped by `(sample_id, requested_style)`, not ID
+alone. The pinned hosted release provides three style-specific references;
+the judge uses the reference matching the requested style. Legacy single-reference
+files remain readable as cross-style anchors, with their source style explicit,
+but do not establish same-style human ceilings.
 
-- one or more intended-meaning options
-- one target option
-- up to three sarcasm mechanism labels
+## Failure accounting
 
-Task 1 is scored directly against gold labels. The main Task 1 score is the
-macro average of intent exact match, target exact match, and mechanism exact
-match.
+Candidate and judge errors are saved separately. Failed candidates are not
+fabricated as empty successful predictions. Judgments with invalid Boolean
+criteria/explanations are rejected. A prediction with zero valid non-self
+judgments has no task score; an entirely missing task has `mean_score=null`,
+not an inferred zero. The runner reports attempted/valid/error counts, expected
+non-self calls, missing calls, and predictions without valid judgments.
+Leaderboard aggregation rejects a missing task. Available-case scoring must
+be interpreted together with these effective denominators.
 
-Task 2, Sarcasm Response, asks a model to write a next-turn reply to the
-sarcastic last comment under an explicit requested response style. The paper
-experiment expands every released base sample into three style-conditioned
-instances: `teasing`, `pushback`, and `neutral`.
+This is the released runner's policy. Without the original per-sample logs,
+it does not prove which implementation or failure denominators produced the
+manuscript's author-reported tables.
 
-Task 3, Sarcasm Generation, asks a model to write a sarcastic comment conditioned
-on the preceding thread, intended meaning, and preferred mechanism labels.
+## Request settings
 
-## Judge Protocol
+All NeurIPS-profile calls use OpenAI-compatible `/v1/chat/completions`. Candidate
+temperature is 0.0 except for both Qwen models (0.7); judges use 0.0. No output
+limit is sent when `max_tokens=null`. Qwen thinking is disabled through the
+endpoint-specific option. Exact compatible endpoint URLs and alias mappings
+must be supplied by the operator; unsupported aliases are never silently
+substituted with newer models. Native Anthropic/Gemini adapters remain available
+for other configurations and are not selected by this profile.
 
-Task 2 and Task 3 are open-ended, so they use LLM-as-a-judge:
+Candidate prompts have no demonstrations. The original judge prompts have
+three fixed calibration examples. They remain unchanged under
+`evaluation/prompts/paper_2026_original`. The corrected calibration templates
+are in `evaluation/prompts`, selected by
+`configs/paper_models_corrected_prompts.json`. The corrected Response example
+identifies its teasing reference and does not equate neutral advice with a
+style failure. The corrected Generation example requests exaggeration rather
+than understatement. Corrected prompts also address the residual `other` label.
+These changes require new judgments and cannot retroactively fix old scores.
 
-- judges: GPT-5.5, Gemini 3.1 Pro, Claude Opus 4.8
-- repeats: 3 independent judge calls per judge family
-- decoding: deterministic judge temperature `0.0`
-- final sample score: mean of `overall_pass` across all judge/repeat judgments
-- final task score: mean of sample scores
+## Offline verification
 
-The judge prompt is designed as a cross-model evaluation protocol rather than a
-single vague preference question. It instructs each judge to:
-
-- ignore candidate model identity;
-- avoid length and verbosity bias;
-- treat the reference answer as a quality anchor, not an exact target string;
-- decompose quality into independent yes/no criteria;
-- reject fluent but off-topic, literal, wrong-style, or wrong-target answers;
-- use few-shot calibration examples before judging the actual item.
-- output one concise explanation for each criterion plus an overall explanation.
-
-Task 2 criteria are conversational fit, addressing the sarcastic last comment,
-avoiding literal-trap errors, requested-style match, social appropriateness,
-natural style, and overall pass. The judge uses the `requested_style` on each
-prediction row as the source of truth for style matching. The released
-`reference_reply` is kept as a content anchor for the same sarcasm event, but it
-does not override the requested style.
-
-Task 3 criteria are meaning preservation, sarcastic tone, context fit, target
-consistency, mechanism alignment, natural style, and overall pass.
-
-The judge prompts are stored in:
-
-- `evaluation/prompts/task2_judge.txt`
-- `evaluation/prompts/task3_judge.txt`
-
-Raw judge judgments are preserved as JSONL so reviewers can recompute metrics.
-The per-sample score files also keep the judge explanations for every
-judge/repeat judgment, making failures inspectable without rerunning the judges.
-
-## Decoding
-
-The default config uses:
-
-- candidate temperature: `0.7`
-- judge temperature: `0.0`
-- one model query per Task 1 or Task 3 sample
-- three Task 2 queries per base sample, one each for `teasing`, `pushback`, and
-  `neutral`
-- no chain-of-thought prompting
-- no retrieval augmentation
-- no tools
-
-Network retries default to one attempt so failed API calls are visible in
-`*_errors.jsonl` rather than silently hidden by retry loops.
-
-## Commands
-
-Candidate inference:
-
-```bash
-python3 scripts/run_candidates.py --config configs/paper_models.json --models all --reset
+```sh
+python3 -m unittest discover -s tests -v
+python3 scripts/audit_dataset.py
+python3 scripts/reaggregate_judgments.py --config configs/paper_models.json
 ```
 
-Judging:
+Reaggregation uses saved records only and makes no model calls. It raises an
+error if original judgment files are missing. It cannot reconstruct individual
+judgments or audit denominators from published means.
 
-```bash
-python3 scripts/run_judges.py --config configs/paper_models.json --candidates all --reset
-```
-
-Aggregation:
-
-```bash
-python3 scripts/aggregate_results.py --config configs/paper_models.json --models all
-```
-
-Use `--dry-run` on candidate or judge commands to inspect the configured model
-roster and paths without sending provider requests.
+`data/release_manifest.json` pins the hosted dataset revision and hashes the
+released task files and public master. `docs/dataset_statistics.json` records
+exact descriptive counts and their denominators. These checks verify the
+released artifact and scoring behavior, not independent replication of the
+reported experiments.

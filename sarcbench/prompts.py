@@ -44,6 +44,18 @@ def render_candidate_prompt(
     raise ValueError(f"Unknown task: {task}")
 
 
+def task2_reference(record: dict[str, Any], requested_style: str) -> tuple[str, str]:
+    gold = record["gold"]
+    if "reference_replies" in gold:
+        replies = gold["reference_replies"]
+        if requested_style not in replies or not isinstance(replies[requested_style], str) or not replies[requested_style].strip():
+            raise ValueError(f"Missing reference for requested style {requested_style}")
+        return replies[requested_style], requested_style
+    # Legacy single-reference files remain usable as cross-style content anchors.
+    # They cannot supply same-style human ceilings for the other styles.
+    return str(gold["reference_reply"]), str(gold.get("reply_style_label", "unknown"))
+
+
 def render_task2_judge_prompt(
     template: str,
     record: dict[str, Any],
@@ -52,11 +64,12 @@ def render_task2_judge_prompt(
     requested_style: str | None = None,
 ) -> str:
     style = requested_style or str(record["gold"].get("reply_style_label", ""))
+    reference, source_style = task2_reference(record, style)
     return (
         template.replace("__THREAD_TEXT__", record["comments"])
         .replace("__RESPONSE_STYLE__", style)
-        .replace("__REFERENCE_STYLE__", str(record["gold"].get("reply_style_label", "")))
-        .replace("__REFERENCE_REPLY__", record["gold"]["reference_reply"])
+        .replace("__REFERENCE_STYLE__", source_style)
+        .replace("__REFERENCE_REPLY__", reference)
         .replace("__CANDIDATE_REPLY__", candidate_reply.strip())
     )
 

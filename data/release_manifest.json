@@ -1,0 +1,25 @@
+{
+  "dataset_revision": "5b1539d8ba1d62d2281796be44f8fa14b8da3962",
+  "source": "https://huggingface.co/datasets/Devon018/SarcBench",
+  "events": 30083,
+  "sample_id_policy": "opaque numeric IDs in task views and public master",
+  "files": {
+    "benchmark_master.jsonl": {
+      "sha256": "9bbb98f49a88b041890bb5149528aae07dca8ef889c8de89d43797399f3fc171",
+      "bytes": 104625547
+    },
+    "task1_benchmark.jsonl": {
+      "sha256": "db4379c0e36d5e77a5c77d55f5b687ca08885c95638211bcd5d3ec4d28c83aa2",
+      "bytes": 49369735
+    },
+    "task2_benchmark.jsonl": {
+      "sha256": "c7c7a00a4dfdefca812783ba660658b8eb08afef3eb10e1a8f9e4496b637f2e5",
+      "bytes": 35524237
+    },
+    "task3_benchmark.jsonl": {
+      "sha256": "059cd9316a7148923313237ae9a8afaab20c4825e72f77ccd70a345511a4a9ce",
+      "bytes": 36282819
+    }
+  },
+  "master_provenance": "Core annotations and reconstruction metadata retained from the repository import; source identifiers, URLs and unused raw reply metadata omitted."
+}
